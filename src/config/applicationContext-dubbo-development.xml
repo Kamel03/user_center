@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xmlns:dubbo="http://code.alibabatech.com/schema/dubbo" 
+	
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd 
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-2.5.xsd
+	http://code.alibabatech.com/schema/dubbo
+    http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+    
+	<dubbo:application name="simple-provider" />
+	<dubbo:registry protocol="zookeeper" address="zookeeper://127.0.0.1:2181"/>
+    <dubbo:provider protocol="dubbo" timeout="5000" filter="dubboRPCFilter"/>
+    <!--  serialization="kryo" optimizer="com.tianque.userAuth.util.SerializationOptimizerImpl" -->
+	<dubbo:protocol name="dubbo" payload="107929600"  port="-1"/>
+	<!-- <dubbo:monitor protocol="registry"/> -->
+	
+	<dubbo:service interface="com.tianque.userAuth.api.DemoDubboService" ref="demoDubboServiceImpl"  />
+	<dubbo:service interface="com.tianque.userAuth.api.OrganizationDubboRemoteService" ref="organizationDubboServiceImpl"  />
+	<dubbo:service interface="com.tianque.userAuth.api.SearchRoleDubboService" ref="searchRoleDubboServiceImpl"  />
+    <dubbo:service interface="com.tianque.userAuth.api.PermissionDubboService" ref="permissionDubboServiceImpl"  />
+    <dubbo:service interface="com.tianque.userAuth.api.UserSignDubboService" ref="userSignDubboServiceImpl"  />
+    <dubbo:service interface="com.tianque.userAuth.api.PropertyDictDubboService" ref="propertyDictDubboServiceImpl"  />
+    <dubbo:service interface="com.tianque.userAuth.api.PropertyDomainDubboService" ref="propertyDomainDubboServiceImpl"  />
+    <dubbo:service interface="com.tianque.userAuth.api.SessionManagerDubboService" ref="sessionManagerDubboServiceImpl"  />
+    <dubbo:service interface="com.tianque.userAuth.api.MobileInfoDubboService" ref="mobileInfoDubboServiceImpl"  />
+    <dubbo:service interface="com.tianque.userAuth.api.SearchUserDubboService" ref="searchUserDubboServiceImpl"  />
+    <dubbo:service interface="com.tianque.userAuth.api.UserAutocompleteDubboService" ref="userAutocompleteDubboServiceImpl"  />
+    <dubbo:service interface="com.tianque.userAuth.api.ModuelClickCountDubboService" ref="moduelClickCountDubboServiceImpl"  />
+    <dubbo:service interface="com.tianque.userAuth.api.PublicNoticeDubboService" ref="publicNoticeDubboServiceImpl"  />
+    <dubbo:service interface="com.tianque.userAuth.api.Notice4ShowDubboService" ref="notice4ShowDubboServiceImpl"  />
+    <dubbo:service interface="com.tianque.userAuth.api.ContacterDubboService" ref="contacterDubboServiceImpl"  />
+    <dubbo:service interface="com.tianque.userAuth.api.UserHasPlatformMessageTypesDubboService" ref="userHasPlatformMessageTypesDubboServiceImpl"  />
+</beans>

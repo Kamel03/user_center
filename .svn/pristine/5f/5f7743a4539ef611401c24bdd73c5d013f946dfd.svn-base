@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="allorganization">
+
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization" />
+	
+	<resultMap id="allOrganizationResult" class="Organization">
+		<result property="id" column="id" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="orgName" column="orgName" />
+		<result property="orgType.id" column="orgType" />
+		<result property="orgLevel.id" column="orgLevel" />
+		<result property="contactWay" column="contactWay" />
+		<result property="departmentNo" column="departmentNo" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="subCount" column="subCount" />
+		<result property="subCountFun" column="subCountFun" />
+		<result property="parentOrg.id" column="parentId" />
+		<result property="parentFunOrg.id" column="parentFunOrgId" />
+		<result property="maxCode" column="maxCode" />
+		<result property="seq" column="seq" />
+		<result property="remark" column="remark" />
+		<result property="gisInfo.buildingId" column="buildingId"/>
+		<result property="gisInfo.centerX" column="centerX"/>
+		<result property="gisInfo.centerY" column="centerY"/>
+		<result property="functionalOrgType.id" column="functionalOrgType"/>
+		<result property="changeType" column="changeType"/>
+		<result property="changeDate" column="changeDate"/>
+	</resultMap>
+	
+	<insert id="addOrganization" parameterClass="Organization">
+		INSERT INTO allorganizations
+		(id,parentFunOrgId,orgInternalCode,orgName,fullPinyin,simplePinyin,orgType,orgLevel,contactWay,departmentNo,createDate,parentId,createUser,subCount,subCountFun,seq,maxCode,remark,functionalOrgType)
+		VALUES(#id#,#parentFunOrg.id#,#orgInternalCode#,#orgName#,#fullPinyin#,#simplePinyin#,#orgType.id#,#orgLevel.id#,#contactWay#,#departmentNo#,#createDate#,#parentOrg.id#,#createUser#,0,0,#seq#,#maxCode#,#remark#,#functionalOrgType.id#)
+	</insert>
+	
+	<update id="updateOrgSeqAndParentId" parameterClass="java.util.Map">
+		update allorganizations set parentId=#parentId#,seq=#seq# where id=#id#
+	</update>
+	<update id="updateOrgInternalCode" parameterClass="java.util.Map">
+		update allorganizations set orgInternalCode=#orgInternalCode# where id=#id#
+	</update>
+	<update id="updateOrganizationByOrgNameAndOrgTypeAndContactWay" parameterClass="Organization">
+		update allorganizations set
+		<dynamic>
+			id =#id#
+			<isNotNull prepend="," property="orgName">
+				orgName=#orgName#
+			</isNotNull>
+			<isNotNull prepend="," property="fullPinyin">
+				fullPinyin=#fullPinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="simplePinyin">
+				simplePinyin=#simplePinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="orgType">
+				orgType=#orgType.id#
+			</isNotNull>
+			<isNotNull prepend="," property="orgType">
+				orgLevel=#orgLevel.id#
+			</isNotNull>
+			<isNotNull prepend="," property="contactWay">
+				contactWay=#contactWay#
+			</isNotNull>
+			<isNotNull prepend="," property="departmentNo">
+				departmentNo=#departmentNo#
+			</isNotNull>
+			<isNotNull prepend="," property="remark">
+				remark=#remark#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="parentFunOrg">
+				parentFunOrgId=#parentFunOrg.id#
+			</isNotNull>
+			<isNotNull prepend="," property="functionalOrgType">
+				functionalOrgType=#functionalOrgType.id#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+	<update id="updatOrgSubCount" parameterClass="java.util.Map">
+		update allorganizations set subCount=#subCount# where id=#id#
+	</update>
+
+	<update id="updatOrgSubCountFun" parameterClass="java.util.Map">
+		update allorganizations set subCountFun=#subCountFun# where id=#id#
+	</update>
+	
+	<update id="updateOrgSeq" parameterClass="java.util.Map">
+		update allorganizations set seq=#seq# where id=#id#
+	</update>
+	<update id="updateOrgsSeqAfterReferSeq" parameterClass="java.util.Map">
+		update allorganizations set seq=seq+#index# where
+			<isNotNull property="parentId">
+				parentId=#parentId#
+			</isNotNull>
+			<isNull property="parentId">
+				parentId is null
+			</isNull>
+		and seq>=#seq#
+	</update>
+	<update id="updateOrgsSeqBeforeReferSeq" parameterClass="java.util.Map">
+		<![CDATA[
+		update allorganizations set seq=seq+#index# where parentId=#parentId# and seq<=#seq#
+		]]>
+	</update>
+	<update id="updateOrgsSeqBetweenReferOrg" parameterClass="java.util.Map">
+		<![CDATA[
+		update allorganizations set seq=seq+#index# where parentId=#parentId# and seq>=#fromSeq# and seq<=#toSeq#
+		]]>
+	</update>
+
+	<update id="updateMaxCodeById" parameterClass="java.lang.Long">
+	update allorganizations set maxCode=maxCode+1 where id = #value#
+	</update>
+
+	<update id="updateOrganizationForGis"  parameterClass="Organization">
+	 	<![CDATA[
+		update allorganizations set
+			 buildingId=#gisInfo.buildingId#,
+			 centerX =#gisInfo.centerX#,
+			 centerY = #gisInfo.centerY#,
+			 updateDate =#updateDate#,
+			 updateUser=#updateUser#
+		 where id =#id#
+		 ]]>
+	</update>
+	<update id="UnboundOrganizationForGis"  parameterClass="java.lang.Long">
+	 	<![CDATA[
+		update allorganizations set
+			 buildingId=null,
+			 centerX =null,
+			 centerY =null
+		 where id =#id#
+		 ]]>
+	</update>
+	
+	<update id="updateOrganizationDeptNo" parameterClass="map">
+		update allorganizations org set org.departmentno = #deptNo# where org.id = #orgId#
+	</update>
+	
+	<update id="updateChildOrganizationDeptNo" parameterClass="map">
+		 update allorganizations org set org.departmentno =
+       			( #newDeptNo# ||  substr(org.departmentno, (length(#newDeptNo#)+1) ,( length(org.departmentno) - length(#newDeptNo#)+1 )))
+               where org.departmentno like '$oldDeptNo$%' and org.departmentno != #oldDeptNo#
+	</update>
+	
+	<select id="findAllOrganizationsByParentId" parameterClass="java.lang.Long" resultMap="allOrganizationResult">
+		select * from allorganizations
+		<dynamic prepend="WHERE">
+			<isNull property="value">
+				parentId is null
+			</isNull>
+			<isNotNull property="value" >
+				parentId = #value#
+			</isNotNull>
+		</dynamic>
+		order by seq
+	</select>
+	
+	<select id="findAllOrgById" parameterClass="java.lang.Long" resultMap="allOrganizationResult">
+		select * from allorganizations
+		<dynamic prepend="where">
+			<isNull property="value">
+			id is null
+			</isNull>
+			<isNotNull property="value">
+			id=#value#
+			</isNotNull>
+		</dynamic>
+	</select>
+	
+	<select id="findAlFunOrgsByParentIdAndOrgTypes" resultMap="allOrganizationResult" parameterClass="java.util.Map">
+		select * from allorganizations where parentFunOrgId=#parentId# and orgType in
+		<iterate property="orgTypes" open="(" close=")" conjunction=",">
+			#orgTypes[]#
+		</iterate>
+	</select>
+	
+	<select id="findAllFunOrgsByParentOrgIdAndOrgTypes" resultMap="allOrganizationResult" parameterClass="java.util.Map">
+		select * from allorganizations where parentId=#parentId# and orgType in
+		<iterate property="orgTypes" open="(" close=")" conjunction=",">
+			#orgTypes[]#
+		</iterate>
+	</select>
+	
+	<select id="findAllOrgsByParentIdAndOrgTypeInternalId" parameterClass="java.util.Map" resultMap="allOrganizationResult">
+		select o.* from allorganizations o,propertyDicts p where o.orgType=p.id and p.internalId=#orgTypeInternalId# and
+			<isNotNull property="parentId">
+				parentId=#parentId#
+			</isNotNull>
+			<isNull property="parentId">
+				parentId is null
+			</isNull>
+			<isNotNull prepend=" and " property="functionalOrgType">
+				functionalOrgType=#functionalOrgType#
+			</isNotNull>
+			order by seq
+	</select>
+	
+	<update id="updateChangeInfo" parameterClass="map">
+	  	update allorganizations set changeType = 2, changeDate = #changeDate# where id = #id#
+	 </update>
+	 
+	 <update id="updatAllOrgSubCount" parameterClass="java.lang.Long">
+	  	update allorganizations set subcount = (select count(1) from allorganizations where parentid = #id#)  where id = #id#
+	</update>
+	 
+</sqlMap>

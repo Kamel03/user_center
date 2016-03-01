@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="searchWorkContacter">
+   	<typeAlias alias="User" type="com.tianque.domain.User" />
+	<typeAlias alias="WorkContacter" type="com.tianque.domain.WorkContacter" />
+	<resultMap id="workContacterResult" class="WorkContacter">
+		<result property="belongClass" column="belongClass" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="id" column="id" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="name" column="name" />
+		<result property="remark" column="remark" />
+		<result property="simplePinyin" column="simplePinyin" />
+	</resultMap>
+	<resultMap id="fullWorkContacterResult" extends="workContacterResult" class="WorkContacter">
+		<result property="fromUser.id" column="fromUserId" />
+	</resultMap>
+	
+    <sql id="sql_where">
+		from contacters c,users u where  c.fromuserid = u.id
+			<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend=" and ">
+					(c.name like #name#||'%' or c.simplePinyin like #name#||'%' or c.fullPinyin like #name# ||'%')
+				</isNotEmpty>
+			</isPropertyAvailable>		
+			<isPropertyAvailable property="mobileNumber">			
+				<isNotEmpty property="mobileNumber" prepend=" and ">
+					<![CDATA[c.mobileNumber like #mobileNumber# ||'%'  and 
+					c.fromuserid in(
+						select distinct(id) from users u where u.organizationid in(select  distinct(o.id) from organizations o where o.orglevel <= #currentUserOrgLeavel#)
+					)]]>
+				</isNotEmpty>
+			</isPropertyAvailable>	
+		
+			<isPropertyAvailable property="workPhone">	
+				<isNotEmpty property="workPhone" prepend=" and ">
+					<![CDATA[u.workPhone like #workPhone# ||'%'
+					]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+		
+			<isPropertyAvailable property="organization">	
+				<isNotNull property="organization" >
+					<isNotEmpty property="organization.id" prepend="and">
+						u.organizationid = #organization.id#
+					</isNotEmpty>
+				</isNotNull>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="privenesOrganization">	
+				<isNotNull property="privenesOrganization" >
+					<isNotEmpty property="privenesOrganization.orgInternalCode" prepend="and">
+						u.orgInternalCode like #privenesOrganization.orgInternalCode#||'%'
+					</isNotEmpty>
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="belongClass">	
+				<isNotNull property="belongClass" prepend=" and ">
+					c.belongClass=#belongClass# and c.fromUserId=u.id 
+				</isNotNull>
+			</isPropertyAvailable>
+	</sql>
+    
+    <select id="searchWorkContacters" parameterClass="java.util.Map" resultMap="fullWorkContacterResult">
+        select c.* 
+        <include refid="sql_where"/>
+        <dynamic prepend="order by">
+           <isPropertyAvailable property="sortField">
+               <isNotNull property="sortField">$sortField$</isNotNull>
+               <isNotNull property="order">$order$</isNotNull>
+           </isPropertyAvailable>
+        </dynamic>
+    </select>
+    
+    <select id="countWorkContacters" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+        select count(c.id)
+		<include refid="sql_where" />
+    </select>
+</sqlMap>

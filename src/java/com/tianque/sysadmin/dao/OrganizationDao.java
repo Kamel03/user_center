@@ -1,0 +1,483 @@
+package com.tianque.sysadmin.dao;
+
+import java.util.List;
+import java.util.Map;
+
+import com.tianque.core.vo.AutoCompleteData;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.PropertyDict;
+import com.tianque.domain.vo.OrganizationVo;
+
+public interface OrganizationDao {
+	public List<Organization> findOrganizationByParentIdAndOrgType(
+			Long parentId, Long orgType);
+
+	public Organization addOrganization(Organization organization);
+
+	public Organization getSimpleOrgById(Long id);
+
+	public Organization updateOrgNameAndOrgTypeAndContactWay(
+			Organization organization);
+
+	public void deleteOrgById(Long id);
+
+	public List<Organization> findOrganizationsByParentId(Long parentId);
+
+	public List<Organization> findOrganizationsByOrgNameAndInternalCodeForPage(
+			String orgInternalCode, String orgName, int pageNum, int pageSize);
+
+	public List<Organization> findOrganizationsByorgNameAndOrgType(
+			String orgInternalCode, String orgName, PropertyDict orgType,
+			int pageNum, int pageSize);
+
+	public void updateOrgSeq(Long orgId, Long seq);
+
+	public void updateOrgsSeqAfterReferSeq(Long parentId, Long seq, Long index);
+
+	public Integer findChildrenMaxSeqByParentId(Long parentId);
+
+	public void updateOrgSeqAndParentId(Long id, Long seq, Long parentId);
+
+	public void updateOrgsSeqBetweenReferOrg(Long fromSeq, Long toSeq,
+			Long parentId, Long index);
+
+	public Organization updateOrgSubCount(Long id, int num);
+
+	public Integer getMaxCodeById(Long id);
+
+	public List<Organization> findOrganizationsByOrgNameAndParentId(Long id,
+			String orgName, Long parentId);
+
+	public List<Organization> findOrganizationsByDepartmentNoAndTypeAndLevel(
+			Organization organization);
+
+	public List<Organization> findMultizonesByUserId(Long userId);
+
+	/**
+	 * @param orgIds
+	 * @return Map key=orgId,value=parentOrgName->orgName
+	 */
+	public Map<Long, String> getOrganizationDisplayName(Long[] orgIds);
+
+	public void updateOrgInternalCode(Long id, String orgInternalCode);
+
+	public int countOrgsByOrgInternalCode(String orgInternalCode);
+
+	public List<Organization> findOrgsByParentIdAndOrgTypeInternalIds(
+			Long parentId, Long[] orgTypeInterIds);
+
+	public List<Organization> findOrgsByParentOrgAndOrgTypeInternalId(
+			String OrgInternalCode, Integer orgType);
+
+	public List<Organization> findFunOrgsByParentIdAndOrgTypes(Long parentId,
+			Long[] propertyDictIds);
+
+	public List<Organization> findOrganizationsByOrgName(String orgName);
+
+	/**
+	 * 根据父组织机构、组织机构名称获得单个组织机构
+	 */
+	public Organization getOrganizationsByParentAndOrgName(Long parentId,
+			String orgName);
+
+	public void updateMaxCodeById(Long id);
+
+	public List<Organization> findAdminOrgsByParentIdAndName(Long parentId,
+			String name);
+
+	public List<Organization> findFunOrgsByParentIdAndName(Long parentId,
+			String name);
+
+	public List<Organization> findFunOrgsByParentFunOrgIdAndName(
+			Long funParentId, String name);
+
+	public List<Organization> findOrganizationsByOrgInternalCode(
+			String orgInternalCode);
+
+	public Organization updateFunParentOrgSubCount(Long id, int num);
+
+	public Organization getOrganizationByNameAndOrgId(String orgName, Long id);
+
+	public Organization getOrganizationByOrgInternalCode(String orgInternalCode);
+
+	public List<Organization> getOrganizationByIdAndOrgInternalCode();
+
+	public Organization getOrganizationByParentId(Long id);
+
+	public Organization getOrganizationByOrganizationCode(String orgCode);
+
+	public Organization getOrgByDepartmentNo(String departmentNo);
+
+	public List<Organization> findOrgsByParentDeptNoAndLevelIdExcludeFunOrgId(
+			String departmentNo, Long orgLevelId, Long funOrgId);
+
+	public Organization getOrgAndLevelInfo(Long orgId);
+
+	public List<Organization> fingOrganizationforLevel(Long orgLevelId);
+
+	public List<OrganizationVo> getTableNameAndOrgId();
+
+	public int countDatasByOrgIdAndTableName(String tableName, String orgIdStr,
+			Long orgId);
+
+	public Organization updateOrganizationForGis(Organization org);
+
+	public Organization unBundOrgToGis(Long orgId);
+
+	public boolean isHasThisOrganization(Long orgId);
+
+	public List<Organization> findOrgsByOrgCodeAndOrgLevelInternalsAndOrgTypeInternals(
+			String orgCode, List<Integer> orgLevelInternals,
+			List<Integer> orgTypeInternals, List<Long> exceptOrgIds);
+
+	/**
+	 * 取得顶级的org，有且只有一条 顶级org的条件是parnetId为null，
+	 * 
+	 * @return
+	 */
+	public Organization getRootOrganization();
+
+	/**
+	 * 根据父组织id获取该组织机构下子部门的最大部门编号
+	 * 
+	 * @param parentId
+	 * @return
+	 */
+	public String getMaxDepartmentNoByParentId(Long parentId);
+
+	/**
+	 * 根据关键字查询组织机构列表，提取一定数量的记录，并把父组织机构也捞取出来
+	 * 
+	 * @param keyword
+	 *            搜索关键字
+	 * @param size
+	 *            共捞取前几条
+	 * @return 组织机构的列表，包含了父组织机构的数据
+	 */
+	public List<Organization> findOrgsFetchParentOrgByKeyword(String keyword,
+			int size);
+
+	public List<Organization> findOrgsByOrgTypeIdAndOrgLevelIdAndParentOrgInternalCode(
+			Long orgTypeId, Long orgLevelId, String parentOrgInternalCode);
+
+	public List<Organization> findOrgsByOrgTypeIdAndOrgLevelId(Long orgTypeId,
+			Long orgLevelId, String userOrgInternalCode);
+
+	public List<Organization> findFunOrgsByFunParentId(Long funParentId);
+
+	/**
+	 * 根据组织机构id，组织机构名称，类型获取组织机构
+	 * 
+	 * @param orgInternalCode
+	 * @param orgName
+	 * @param type
+	 * @param pageNum
+	 * @param pageSize
+	 * @return
+	 */
+	public List<Organization> findOrganizationsByOrgNameAndInternalCodeAndTypeForPage(
+			String orgInternalCode, String orgName, Long[] type, int pageNum,
+			int pageSize);
+
+	public List<Organization> getOrgZN(Long id);
+
+	/**
+	 * 根据部门编号(departmentno)模糊查询所有的子组织机构列表
+	 * 
+	 * @param departmentNo
+	 * @return
+	 */
+	public List<Organization> findOrgsByDepartmentNo(String departmentNo);
+
+	public List<Organization> findFunOrgsByParentOrgIdAndOrgTypes(
+			Long parentOrgId, Long[] propertyDictIds);
+
+	public List<Organization> findOrgsByParentIdAndOrgTypeInternalIdsAndFunctionalType(
+			Long parentId, Long[] orgTypeInternalIds, Long orgFunctionalType);
+
+	public boolean hasFunOrganizationByParentOrgAndFunOrgType(
+			String parentOrgCode, Long funOrgType);
+
+	public List<Long> getOrganizationsByLevel(Long typeId, Long levelId);
+
+	/**
+	 * 根据部门类型层级获得 DepartmentNo 用于分表
+	 * 
+	 * @param typeId
+	 * @param levelId
+	 * @return
+	 */
+	public List<Organization> getDepartmentNoByLevel(Long typeId, Long levelId);
+
+	/**
+	 * 根据网格类型id orgType 查询县级以下行政部门组织机构
+	 * 
+	 * @param orgTypeId
+	 * @param searchOrgCode
+	 * @param orgCodeFindLevel
+	 * @return
+	 */
+
+	public List<Organization> findDistrictAdminOrgsByOrgType(Long orgTypeId,
+			String searchOrgCode, String orgCodeFindLevel);
+
+	public List<Organization> findProvinceOrganizationsByOrgId(Long orgId);
+
+	/**
+	 * 通ORGId制定查询某一层级的组织机构信息
+	 */
+	public List<Organization> findOrganizationByOrgIdAndNum(Long orgId,
+			Integer Num);
+
+	/**
+	 * 得到当前用户的直属上级或者是下级 isUp:0上级 1:下级
+	 */
+	public List<Organization> findOrgsByOrgTypeIdAndOrgLevelIdAndOrgInternalCode(
+			Long orgTypeId, Long orgLevelId, String userOrgInternalCode,
+			Integer isUp);
+
+	/***
+	 * 查询职能部门信息 orgLevel:查询的组织结构的级别（省、市、县.....等） orgType:查询职能部门还是行政部门
+	 * orgCode:某个层级下（是查询市级职能部门还是...） isUp:是查询当前，还是查询下辖所有
+	 */
+	public List<Organization> findFuncOrgInfoByCondition(Long orgLevel,
+			Long orgType, String orgCode, Integer isUp);
+
+	/**
+	 * 
+	 * @Title: getOrganizationByIdAndDictName
+	 * @Description: TODO根据组织机构id，字典项名称，查询组织机构
+	 * @param @param id
+	 * @param @param domainName
+	 * @param @param dictName
+	 * @param @return 设定文件
+	 * @return Organization 返回类型
+	 * @author wanggz
+	 * @date 2014-8-29 上午10:54:10
+	 */
+	public Organization getOrganizationByIdAndDictName(Long id,
+			String domainName, String dictName);
+
+	public List<String> getDepartmentnosByParentOrgId(Long parentOrgId);
+
+	public void updateOrganizationDeptNo(String newDeptNo, Long id);
+
+	public void editChildOrganizationDeptNo(String oldDeptNo, String newDeptNo);
+
+	public List<Organization> findAllOrganization();
+
+	public List<Long> findLeafOrgIdByCode(String orgCode);
+
+	/***
+	 * 根据组织机构类别以及组织机构层级查询所有网格层级以上的行政部门组织机构ID
+	 */
+	public List<Long> findOrganizationByOrgLevelAndOrgType(Long orgLevel,
+			Long orgType);
+
+	public List<Organization> findAllOrgByParentOrgCode(String orgCode,
+			Long orgType);
+
+	public List<Long> findOrganizationsByParentIdAndType(Long orgId,
+			int orgTypeId);
+
+	public List<Long> findOrgIdByParentId(Long parentId);
+
+	/********************* 迁移合并方法 ***************************/
+	public Organization getSimpleOrgAllOrganizationById(Long id);
+
+	public int updateAllOrgSubCount(Long id);
+
+	/* add by zenglm for job optmize */
+	List<Organization> findOrganIdForLevelExcludeGrid(Long orgLevelId,
+			int taskItemNum, List<Long> idModList, int fetchNum, int year,
+			int month, String targetIssueTable);
+
+	// add by bing 2014年11月12日 下午6:07:51
+
+	/**
+	 * 三本台账时限考核按照取模分派的来分页取数据
+	 * 
+	 * @param idModList
+	 * @param taskParameter
+	 * @param paseSize
+	 * @param tableName
+	 * @return
+	 */
+	public List<Long> queryOrgIdsByModelForStatisticsAccountTimeouts(
+			List<Long> idModList, String taskParameter, Integer paseSize,
+			String tableName);
+
+	/**
+	 * 三本台账时限考核按照取模分派的来统计有多少数据
+	 * 
+	 * @param idModList
+	 * @param taskParameter
+	 * @return
+	 */
+	public Integer countOrgIdsByModelForStatisticsAccountTimeouts(
+			List<Long> idModList, String taskParameter);
+
+	/**
+	 * 三本台账报表取模后所有的数据（不分页）
+	 * 
+	 * @param idModList
+	 * @param taskParameter
+	 * @param orgLevelInternalId
+	 * @param orgTypeInternalId
+	 * @return
+	 */
+	public List<Long> queryOrgIdsByModelForAccountReport(List<Long> idModList,
+			String taskParameter, int orgLevelInternalId, int orgTypeInternalId);
+
+	/* end by zenglm for job optmize */
+
+	/**
+	 * 获取市级行政部门【特殊用途取第一个用于展示组织机构树的】
+	 * 
+	 * @param orgCode
+	 * @param orgType
+	 * @param orgLevel
+	 * @return
+	 */
+	public Organization getAdministrativeCityOrg(String orgCode, Long orgType,
+			Long orgLevel);
+
+	/**
+	 * 根据搜索条件查询orgId集合
+	 * 
+	 * @param searchVo
+	 * @return
+	 */
+	public List<Long> findOrgIdsBySearchVo(OrganizationVo searchVo);
+
+	/**
+	 * 根据搜索条件查询org集合
+	 * 
+	 * @param searchVo
+	 * @return
+	 */
+	public List<Organization> findOrgsBySearchVo(OrganizationVo searchVo);
+
+	/**
+	 * 根据搜索条件查询orgName和remark集合
+	 * 
+	 * @param searchVo
+	 * @return
+	 */
+	public List<Organization> findNameAndRemarkBySearchVo(OrganizationVo searchVo);
+
+	/**
+	 * 根据搜索条件统计数量
+	 * 
+	 * @param searchVo
+	 * @return
+	 */
+	public Integer countOrgsBySearchVo(OrganizationVo searchVo);
+	
+
+	public String getUserOrganztionCodeByOrgId(Long orgId);
+
+
+	public List<Integer> getViewObjectDefNum(List<Map<String, Object>> list);
+
+	public List<Long> getOrgIdsWhenSelectByLevel(
+			List<Map<String, Object>> selectedLevelList);
+
+	public List<String> getSelectedOrgNamesByOrgIdsAndTypeLevel(
+			OrganizationVo organizationVo);
+
+	/**
+	 * 根据所属组织机构，查询指定层级的组织机构
+	 * 
+	 * @param orgId
+	 * @param organizationLevel
+	 *            (OrganizationType的层级)
+	 * @return
+	 */
+	public List<Organization> findProvinceOrganizationsByOrgIdAndCityLevel(
+			Long orgId, Integer organizationLevel);
+	
+	public Organization getOrgByOrgIdAndOrgLevelInternalId(Long orgId,
+			Integer internalId);
+
+	public Integer countOrgByOrgIdsListAndResidentStatusDict(
+			OrganizationVo searchVo);
+
+	public Organization findOrganizationByOrgTypeAndOrgLevelAndOrgName(
+			Long orgTypeId, Long orgLevelId, String orgName,String fullOrgName);
+
+	public Long getOrganizationforLevelWithGridTotal(Long orgLevelId);
+	
+	/***
+	 * 查询获得所有某省下某层级、某类别的组织机构数据
+	 */
+	public List<Organization> getAdministrativeOrgByLevelAndType(String orgCode,Long orgLevel,Long orgType);
+	
+	// ==================================================中江三本台账所需接口=======================================================//
+	/***
+	 * 三本台账使用 根据部门编号和组织机构父ID查询组织机构信息 departmentNo 部门编号 parentId 组织机构父ID
+	 * 数据量：当前数据量约为10条一下
+	 */
+	public List<Organization> findByDepartmentNoAndParentId(
+			String departmentNo, Long parentId);
+
+	/***
+	 * 三本台账使用 台账处理时，根据用户输入的关键字查询台账的主办单位
+	 * 
+	 * @param orgType
+	 *            组织机构类别
+	 * @param parentId
+	 *            父ID
+	 * @param tag
+	 *            关键字
+	 * @param exceptIds
+	 *            不需要查询出来组织机构ID
+	 * @param exceptDeptNos
+	 *            不需要查询的组织机构部门编号
+	 * @param page
+	 *            页码
+	 * @param rows
+	 *            每页显示条数
+	 * @return
+	 */
+	public PageInfo<AutoCompleteData> findChildOrgsByParentIdAndName(
+			PropertyDict orgType, Long parentId, String tag, Long[] exceptIds,
+			String exceptDeptNos[], int page, int rows);
+	
+	/**
+	 * 查询指定机构下,指定level的数量
+	 * @param orgLevel
+	 * @param orgId
+	 * @return
+	 */
+	public Long countOrgsByLevelAndOrgCode(Long orgLevel, String orgCode);
+
+//	/**
+//	 * 三本台账使用 根据parentfunorgid,名字查询组织机构
+//	 * 
+//	 * @param parentId
+//	 *            职能部门的父Id
+//	 * @param tag
+//	 *            关键字
+//	 * @param exceptIds
+//	 *            不需要查询出来的组织机构ID
+//	 * @return
+//	 */
+//	public List<AutoCompleteData> findChildFunOrgsByParentFunIdAndName(
+//			Long parentId, String orgName, Long[] exceptIds);
+//
+//	/***
+//	 * 三本台账使用 根据组织机构职能部门的父ID和名称查询组织机构信息
+//	 * 
+//	 * @param id
+//	 *            组织机构ID
+//	 * @param tag
+//	 *            关键字
+//	 * @param exceptIds
+//	 *            不需要查询的组织机构ID
+//	 * @return
+//	 */
+//	public List<AutoCompleteData> findParentFunOrgsByIdAndName(Long id,
+//			String tag, Long[] exceptIds);
+}

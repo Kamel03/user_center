@@ -1,0 +1,647 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="permission">
+	<typeAlias alias="Permission" type="com.tianque.domain.Permission" />
+	
+	<typeAlias alias="PermissionVo" type="com.tianque.mobile.vo.PermissionVo" />
+	<parameterMap id="permissionParams" class="Permission">
+		<parameter property="id" />
+		<parameter property="cname" />
+		<parameter property="ename" />
+		<parameter property="permissionType" />
+		<parameter property="moduleName" />
+		<parameter property="parent" />
+		<parameter property="enable" />
+		<parameter property="description" />
+		<parameter property="indexId" />
+	</parameterMap>
+	<resultMap id="permissionEnameAndCnameResult" class="PermissionVo">
+		<result property="cname" column="cname" />
+		<result property="ename" column="ename" />
+		<result property="moduleName" column="moduleName" />
+	</resultMap>
+	<resultMap id="permissionResult" class="Permission">
+		<result property="id" column="id" />
+		<result property="cname" column="cname" />
+		<result property="ename" column="ename" />
+		<result property="permissionType" column="permissionType" />
+		<result property="moduleName" column="moduleName" />
+		<result property="enable" column="enable" />
+		<result property="description" column="description" />
+		<result property="indexId" column="indexid" />
+		<result property="normalUrl" column="normalUrl" />
+		<result property="leaderUrl" column="leaderUrl" />
+		<result property="gridUrl" column="gridUrl" />
+
+		<result property="parent.id" column="pid" />
+		<result property="parent.cname" column="parentCname" />
+		<result property="parent.ename" column="parentEname" />
+		<result property="parent.permissionType" column="parentPermissiontype" />
+		<result property="parent.moduleName" column="parentModulename" />
+		<result property="parent.enable" column="parentEnable" />
+		<result property="parent.description" column="parentDescription" />
+		<result property="parent.indexId" column="parentIndexId" />
+		<result property="parent.normalUrl" column="parentNormalurl" />
+		<result property="parent.leaderUrl" column="parentLeaderurl" />
+		<result property="parent.gridUrl" column="parentGridUrl" />
+
+	</resultMap>
+
+	<resultMap id="simplePermissionResult" class="Permission">
+		<result property="id" column="id" />
+		<result property="cname" column="cname" />
+		<result property="ename" column="ename" />
+		<result property="permissionType" column="permissionType" />
+		<result property="moduleName" column="moduleName" />
+		<result property="parent.id" column="parentId" />
+		<result property="enable" column="enable" />
+		<result property="description" column="description" />
+		<result property="indexId" column="indexid" />
+		<result property="normalUrl" column="normalUrl" />
+		<result property="leaderUrl" column="leaderUrl" />
+		<result property="gridUrl" column="gridUrl" />
+	</resultMap>
+
+	<select id="getPermissionById" parameterClass="Long" resultClass="Permission">   
+	  <![CDATA[   
+	  	select * from permissions where id=#value#
+	  ]]>
+	</select>
+
+	<select id="getPermissionByNormalUrl" parameterClass="java.lang.String" resultClass="Permission">   
+	  <![CDATA[   
+	  	select * from permissions where normalUrl = #value# or leaderUrl = #value#
+	  ]]>
+	</select>
+
+
+	<insert id="addPermission" parameterClass="Permission">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_permissions.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO permissions
+		(id,cname,ename,indexid,permissionType,moduleName,parentId,enable,description,normalUrl,leaderUrl,gridUrl)
+		VALUES(#id#,#cname#,#ename#,#indexId#,#permissionType#,#moduleName#,#parent.id#,#enable#,#description#,#normalUrl#,#leaderUrl#,#gridUrl#)
+	</insert>
+
+	<sql id="sql_where">
+		from permissions p
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="cname">
+				<isNotNull property="cname" prepend=" and ">
+					p.cname=#cname#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="ename">
+				<isNotNull property="ename" prepend=" and ">
+					p.ename=#ename#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="permissionType">
+				<isNotNull property="permissionType" prepend=" and ">
+					p.permissionType=#permissionType#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="moduleName">
+				<isNotNull property="moduleName" prepend=" and ">
+					p.moduleName=#moduleName#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="parentId">
+				<isNotNull property="parentId" prepend=" and ">
+					p.parentId=#parent.id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="enable">
+				<isNotNull property="enable" prepend=" and ">
+					p.enable=#enable#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					p.permissionId=#id#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+	<!-- updated by evan 20150316 -->
+
+	<select id="findPermissionsByIdFetchParent" parameterClass="long" resultMap="permissionResult">
+		select p.* ,
+			pp.id as pid,
+			pp.cname parentCname,
+			pp.ename parentEname,
+			pp.permissiontype parentPermissiontype,
+			pp.modulename parentModulename ,
+			pp.enable parentEnable,
+			pp.parentid parentParentId,
+			pp.description parentDescription,
+			pp.normalurl parentNormalurl,
+			pp.leaderurl parentLeaderurl,
+			pp.indexid parentIndexId,
+			pp.gridurl parentGridUrl
+
+		from permissions p,permissions pp where
+			p.id= #value# and p.parentid=pp.id(+)
+
+	</select>
+
+	<select id="findPermissionsByRoleId" parameterClass="java.lang.Long" resultMap="permissionResult">
+		select x.*,
+		       pp.id             as pid,
+		       pp.cname          parentCname,
+		       pp.ename          parentEname,
+		       pp.permissiontype parentPermissiontype,
+		       pp.modulename     parentModulename,
+		       pp.enable         parentEnable,
+		       pp.parentid       parentParentId,
+		       pp.description    parentDescription,
+		       pp.normalurl      parentNormalurl,
+		       pp.leaderurl      parentLeaderurl,
+		       pp.indexid        parentIndexId,
+		       pp.gridurl        parentGridUrl
+		  from (select p.*
+		          from permissions p
+		         where p.id in (select r.permissionid
+		                          from rolehaspermissions r
+		                         where roleid = #value#)) x,
+		       permissions pp
+		 where x.parentid = pp.id(+)
+
+	</select>
+
+	<select id="findAllPermissionsByCurrentUserRoleId" parameterClass="java.util.Map" resultMap="permissionResult">
+		select p.*,
+		pp.id as pid,
+		pp.cname parentCname,
+		pp.ename parentEname,
+		pp.permissiontype parentPermissiontype,
+		pp.modulename parentModulename,
+		pp.enable parentEnable,
+		pp.parentid parentParentId,
+		pp.description parentDescription,
+		pp.normalurl parentNormalurl,
+		pp.leaderurl parentLeaderurl,
+		pp.indexid parentIndexId,
+		pp.gridurl parentGridUrl
+		from permissions p, permissions pp, roleHasPermissions rp, userHasRoles u
+		where p.enable = 1
+		and p.id = rp.permissionId
+		and rp.roleId = u.roleId
+		and u.userid = #userId#
+		and p.parentid = pp.id
+		<dynamic>
+			<isPropertyAvailable property="permissiontype">
+				<isNotNull property="permissiontype" prepend=" and ">
+					p.permissiontype=#permissiontype#
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+
+	</select>
+
+	<select id="findPermissionsByPermissionName" parameterClass="java.util.Map" resultMap="permissionResult">
+		select p.* ,
+		pp.id as pid,
+		pp.cname parentCname,
+		pp.ename parentEname,
+		pp.permissiontype parentPermissiontype,
+		pp.modulename parentModulename,
+		pp.enable parentEnable,
+		pp.parentid parentParentId,
+		pp.description parentDescription,
+		pp.normalurl parentNormalurl,
+		pp.leaderurl parentLeaderurl,
+		pp.indexid parentIndexId,
+		pp.gridurl parentGridUrl
+		from permissions p,permissions pp
+		where (p.cname like #name# or p.ename like #name# or p.modulename like #name#) and p.parentid = pp.id
+	</select>
+
+	<select id="findPermissionsByEnames" parameterClass="java.util.Map" resultMap="permissionResult">
+		select p.*,
+		       pp.id             as pid,
+		       pp.cname          parentCname,
+		       pp.ename          parentEname,
+		       pp.permissiontype parentPermissiontype,
+		       pp.modulename     parentModulename,
+		       pp.enable         parentEnable,
+		       pp.parentid       parentParentId,
+		       pp.description    parentDescription,
+		       pp.normalurl      parentNormalurl,
+		       pp.leaderurl      parentLeaderurl,
+		       pp.indexid        parentIndexId,
+		       pp.gridurl        parentGridUrl 
+		
+		from permissions p, permissions pp where p.enable=1 and p.ename in
+		<iterate close=")" open="(" conjunction="," property="enames">
+			#enames[]#
+		</iterate>
+		 and p.parentid = pp.id(+)
+	</select>
+
+	<select id="findPermissionsByIds" parameterClass="java.util.Map" resultMap="permissionResult">
+		
+		select p.*,
+		       pp.id             as pid,
+		       pp.cname          parentCname,
+		       pp.ename          parentEname,
+		       pp.permissiontype parentPermissiontype,
+		       pp.modulename     parentModulename,
+		       pp.enable         parentEnable,
+		       pp.parentid       parentParentId,
+		       pp.description    parentDescription,
+		       pp.normalurl      parentNormalurl,
+		       pp.leaderurl      parentLeaderurl,
+		       pp.indexid        parentIndexId,
+		       pp.gridurl        parentGridUrl 
+		
+		from permissions p, permissions pp  where p.enable=1 and p.id in
+		<iterate open="(" conjunction="," close=")" property="permissionIds">
+			#permissionIds[]#
+		</iterate>
+		  and p.parentid = pp.id(+)
+	</select>
+
+	<!--第一次请求 展示 根节点 -->
+	<select id="getRootPermissions" resultMap="permissionResult">
+		 select p.*,
+	         pp.id             as pid,
+	         pp.cname          parentCname,
+	         pp.ename          parentEname,
+	         pp.permissiontype parentPermissiontype,
+	         pp.modulename     parentModulename,
+	         pp.enable         parentEnable,
+	         pp.parentid       parentParentId,
+	         pp.description    parentDescription,
+	         pp.normalurl      parentNormalurl,
+	         pp.leaderurl      parentLeaderurl,
+	         pp.indexid        parentIndexId,
+	         pp.gridurl        parentGridUrl
+	    from permissions p, permissions pp
+	   where p.parentid is null
+	     and p.parentid = pp.id(+)
+	   order by p.indexid
+	</select>
+	
+	<select id="findPermissions" parameterClass="Permission" resultMap="permissionResult">
+		select p.*,
+		   pp.id             as pid,
+	       pp.cname          parentCname,
+	       pp.ename          parentEname,
+	       pp.permissiontype parentPermissiontype,
+	       pp.modulename     parentModulename,
+	       pp.enable         parentEnable,
+	       pp.parentid       parentParentId,
+	       pp.description    parentDescription,
+	       pp.normalurl      parentNormalurl,
+	       pp.leaderurl      parentLeaderurl,
+	       pp.indexid        parentIndexId,
+	       pp.gridurl        parentGridUrl
+		from permissions p,permissions pp  where p.parentid = pp.id(+)
+		<isPropertyAvailable property="cname">
+			<isNotNull property="cname" prepend=" and ">
+				p.cname=#cname#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="ename">
+			<isNotNull property="ename" prepend=" and ">
+				p.ename=#ename#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="permissionType">
+			<isNotNull property="permissionType" prepend=" and ">
+				p.permissionType=#permissionType#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="moduleName">
+			<isNotNull property="moduleName" prepend=" and ">
+				p.moduleName=#moduleName#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="parentId">
+			<isNotNull property="parentId" prepend=" and ">
+				p.parentId=#parent.id#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="enable">
+			<isNotNull property="enable" prepend=" and ">
+				p.enable=#enable#
+			</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="id">
+			<isNotNull property="id" prepend=" and ">
+				p.permissionId=#id#
+			</isNotNull>
+		</isPropertyAvailable>
+		
+	</select>
+
+	<select id="findMenuLeaderPermissionsByUserId" resultMap="permissionResult" parameterClass="java.util.Map">
+		select pps.*,
+	       pp.id             as pid,
+	       pp.cname          parentCname,
+	       pp.ename          parentEname,
+	       pp.permissiontype parentPermissiontype,
+	       pp.modulename     parentModulename,
+	       pp.enable         parentEnable,
+	       pp.parentid       parentParentId,
+	       pp.description    parentDescription,
+	       pp.normalurl      parentNormalurl,
+	       pp.leaderurl      parentLeaderurl,
+	       pp.indexid        parentIndexId,
+	       pp.gridurl        parentGridUrl
+	  from permissions pps, permissions pp
+	 where pps.parentid is null
+	   and pps.parentid = pp.id(+)
+	   and pps.id in
+	       (select ps.parentid
+	          from permissions ps
+	         where ps.id in (select distinct (p.parentid)
+	                           from permissions p
+	                          where p.ename like '%' || #LeaderView# || ''))
+	   and pps.id in (select rpr.permissionId
+	                    from userHasRoles rur, roleHasPermissions rpr
+	                   where rur.roleid = rpr.roleid
+		<isNotNull prepend="and" property="userId">
+			rur.userId=#userId#
+		</isNotNull>
+		)
+	</select>
+
+	<!-- updated by evan 20150316 -->
+
+
+	<select id="findPermissionsByEname" parameterClass="java.lang.String" resultClass="Permission">
+		select p.* from permissions p where p.ename=#value#
+	</select>
+	<select id="countPermissions" parameterClass="Permission" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+
+
+
+	<select id="findPermissionsEnameByUserId" parameterClass="java.lang.Long" resultClass="java.lang.String">
+		select p.ename from permissions p
+		where p.enable=1 and p.id in (select
+		rpr.permissionId from userHasRoles rur,roleHasPermissions rpr
+		where rpr.roleId=rur.roleId and rur.userId=#value#)
+	</select>
+	
+	<select id="findAllPermissionMobile" resultClass="Permission">
+		select p.ename from permissions p where p.enable=1
+	</select>
+
+	<select id="getPermissionByParentId" parameterClass="java.lang.Long" resultMap="simplePermissionResult">
+		select * from permissions p where
+		<isNull>
+			p.parentid is null
+		</isNull>
+		<isNotNull>
+			p.parentid = #value#
+		</isNotNull>
+		and p.ename not like '%LeaderView' order by p.indexid
+	</select>
+	<!-- 由于岗位新增修改时不需要领导视图的权限所以为权限管理新增一个方法 -->
+	<select id="getPermissionByParentIdToPermissionTree" parameterClass="java.lang.Long" resultMap="simplePermissionResult">
+		select * from permissions p where
+		<isNull>
+			p.parentid is null
+		</isNull>
+		<isNotNull>
+			p.parentid = #value#
+		</isNotNull>
+		order by p.indexid
+	</select>
+
+	<select id="getPermissionByParentIdAnduserId" parameterClass="java.util.Map" resultMap="simplePermissionResult">
+		select * from permissions
+		where parentid =#parentId# and enable=1
+		and id in (select rpr.permissionId from userHasRoles rur,roleHasPermissions rpr where rur.roleid = rpr.roleid
+		<isNotNull prepend="and" property="userId">
+			rur.userId=#userId#
+		</isNotNull>
+		)
+	</select>
+	<update id="updatePermissionName" parameterClass="Permission">
+		update permissions set
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="cname">
+				cname=#cname#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+	<update id="addPermissionIndexId" parameterClass="java.util.Map">
+		 <![CDATA[ 
+			update permissions set
+			id=#id#,indexid=#indexId# where id=#id#
+		  ]]>
+	</update>
+
+	<update id="updatePermissionByIndexIdAndId" parameterClass="java.util.Map">
+		<![CDATA[ 
+			update permissions p set
+			p.indexid=#indexId# where p.id=#id# 
+		  ]]>
+	</update>
+	<select id="getPermissionByParentIdAndIndexId" parameterClass="java.util.Map" resultMap="simplePermissionResult">
+		select * from permissions p
+		<dynamic prepend="where">
+			<isNotNull property="parentId" prepend=" and ">
+				p.parentid=#parentId#
+			</isNotNull>
+			<isNull property="parentId" prepend=" and ">
+				p.parentid is null
+			</isNull>
+			<isNotNull property="indexId" prepend=" and ">
+				p.indexid=#indexId#
+			</isNotNull>
+		</dynamic>
+	</select>
+	<select id="getPermissionByNullParentIdAndIndexId" parameterClass="java.util.Map" resultMap="simplePermissionResult">
+		select * from permissions p where p.parentid is null and p.indexid=#indexId#
+	</select>
+
+	<select id="getPermissionByPermissionId" parameterClass="java.lang.Long" resultMap="simplePermissionResult">
+		select * from permissions p where p.id=#id#
+	</select>
+	<select id="countPermissionByParentId" parameterClass="java.lang.Long" resultClass="java.lang.Long">
+		select count(*) from permissions p
+		<dynamic prepend="where">
+			<isNotNull>
+				p.parentid=#value#
+			</isNotNull>
+			<isNull>
+				p.parentid is null
+			</isNull>
+		</dynamic>
+	</select>
+	<update id="updatePermissionIndexIdById" parameterClass="java.util.Map">
+		<![CDATA[ 
+			update permissions p set
+			p.indexid=#indexId# where p.id=#id#
+		  ]]>
+	</update>
+
+	<select id="findPermissionByEname" parameterClass="java.lang.String" resultMap="simplePermissionResult">
+		select p.* from permissions p where p.ename=#ename#
+	</select>
+	<select id="findMenuPermissions" parameterClass="java.lang.String" resultMap="simplePermissionResult">
+		select * from permissions p where (
+		p.permissiontype=1 or
+		id in (select distinct(parentid) from (select * from permissions where permissiontype=0) where parentid is not null)
+		) and p.enable=1
+		order by id
+	</select>
+	<select id="findMenuPermissionsByuserId" parameterClass="java.lang.Long" resultMap="simplePermissionResult">
+		select * from (select * from permissions p where (
+		p.permissiontype=1 or
+		id in (select distinct(parentid) from (select * from permissions where permissiontype=0) where parentid is not null)
+		) and p.enable=1) p
+		where p.id in (select
+		rpr.permissionId from userHasRoles rur,roleHasPermissions rpr
+		where rpr.roleId=rur.roleId and rur.userId=#value#) order by id
+	</select>
+
+	<select id="getPermissionIndexIdById" resultClass="Long" parameterClass="Long">
+		select indexid from permissions where id = #value#
+	</select>
+
+	<select id="findUserAllPermissionEnameAndCnameByUserId" parameterClass="java.lang.Long" resultMap="permissionEnameAndCnameResult">
+		select p.ename,p.cname,p.moduleName from permissions p
+		where p.enable=1 and p.id in (select
+		rpr.permissionId from userHasRoles rur,roleHasPermissions rpr
+		where rpr.roleId=rur.roleId and rur.userId=#value#)
+	</select>
+	<select id="getPermissionHasChildren" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM PERMISSIONS P WHERE P.PARENTID=#id# AND (P.PERMISSIONTYPE=1 OR P.PERMISSIONTYPE=2)
+	</select>
+	<select id="findMenuPermissions2" parameterClass="java.lang.String" resultMap="simplePermissionResult">
+		select * from permissions p where (p.permissiontype=1 or p.permissiontype=2)
+		<isNotEmpty prepend=" AND " property="value">PARENTID = #value#</isNotEmpty>
+		<isEmpty prepend=" AND " property="value">PARENTID IS NULL</isEmpty>
+		order by id
+	</select>
+	<select id="findMenuPermissionsByuserIdMap" parameterClass="java.util.HashMap" resultMap="simplePermissionResult">
+		select * from permissions p
+		where p.enable=1 and (p.permissiontype=1 or p.permissiontype=2) and p.id in (select
+		rpr.permissionId from userHasRoles rur,roleHasPermissions rpr
+		where rpr.roleId=rur.roleId and rur.userId=#userId#)
+		<isNotEmpty prepend=" AND " property="nodeId">p.PARENTID = #nodeId#</isNotEmpty>
+		<isEmpty prepend=" AND " property="nodeId">PARENTID IS NULL</isEmpty>
+		order by id
+	</select>
+
+	<select id="findUserAllPermissionByUserIdAndPermissionEname" parameterClass="java.util.Map" resultMap="permissionResult">
+		select p.*,
+		   pp.id             as pid,
+	       pp.cname          parentCname,
+	       pp.ename          parentEname,
+	       pp.permissiontype parentPermissiontype,
+	       pp.modulename     parentModulename,
+	       pp.enable         parentEnable,
+	       pp.parentid       parentParentId,
+	       pp.description    parentDescription,
+	       pp.normalurl      parentNormalurl,
+	       pp.leaderurl      parentLeaderurl,
+	       pp.indexid        parentIndexId,
+	       pp.gridurl        parentGridUrl
+		from permissions p,permissions pp
+		where p.enable=1 and p.ename=#ename# and p.id in (select
+		rpr.permissionId from userHasRoles rur,roleHasPermissions rpr
+		where rpr.roleId=rur.roleId and rur.userId=#userId#)
+		and p.parentid = pp.id(+)
+	</select>
+	<select id="findUserAllPermissionByUserIdAndPermissionEnames" parameterClass="java.util.Map" resultMap="permissionResult">
+		select p.*,
+		   pp.id             as pid,
+	       pp.cname          parentCname,
+	       pp.ename          parentEname,
+	       pp.permissiontype parentPermissiontype,
+	       pp.modulename     parentModulename,
+	       pp.enable         parentEnable,
+	       pp.parentid       parentParentId,
+	       pp.description    parentDescription,
+	       pp.normalurl      parentNormalurl,
+	       pp.leaderurl      parentLeaderurl,
+	       pp.indexid        parentIndexId,
+	       pp.gridurl        parentGridUrl
+		from permissions p,permissions pp
+		where p.enable=1 and p.ename
+		<iterate property="enames" prepend=" in " open="(" close=")" conjunction=",">#enames[]#</iterate>
+		 and p.id in (select
+		rpr.permissionId from userHasRoles rur,roleHasPermissions rpr
+		where rpr.roleId=rur.roleId and rur.userId=#userId#)
+		and p.parentid = pp.id(+)
+	</select>
+
+
+
+
+	<select id="findMenuLeaderPermissions" resultMap="permissionResult" parameterClass="java.util.Map">
+		select pps.*,
+		   pp.id             as pid,
+	       pp.cname          parentCname,
+	       pp.ename          parentEname,
+	       pp.permissiontype parentPermissiontype,
+	       pp.modulename     parentModulename,
+	       pp.enable         parentEnable,
+	       pp.parentid       parentParentId,
+	       pp.description    parentDescription,
+	       pp.normalurl      parentNormalurl,
+	       pp.leaderurl      parentLeaderurl,
+	       pp.indexid        parentIndexId,
+	       pp.gridurl        parentGridUrl
+		from permissions pps,permissions pp
+		where pps.parentid is null and
+		pps.id in
+		(select ps.parentid from permissions ps where ps.id in
+		(select distinct(p.parentid) from permissions p where p.ename like '%'||#LeaderView#||''))
+		and pps.parentid = pp.id(+)
+	</select>
+
+	<select id="findChildrenPermission" parameterClass="java.util.Map" resultMap="simplePermissionResult">
+		select * from permissions p where
+		<isNotNull property="parentId">
+			p.ename like '%'||#LeaderView#||'' and p.parentid = #parentId#
+		</isNotNull>
+		order by p.indexid
+	</select>
+	<select id="findChildrenPermissionByUserId" parameterClass="java.util.Map" resultMap="simplePermissionResult">
+		select * from permissions p where
+		<isNotNull property="parentId">
+			p.ename like '%'||#LeaderView#||'' and p.parentid = #parentId# and p.enable='1'
+		</isNotNull>
+		and id in (select rpr.permissionId from userHasRoles rur,roleHasPermissions rpr where rur.roleid = rpr.roleid
+		<isNotNull prepend="and" property="userId">
+			rur.userId=#userId#
+		</isNotNull>
+		)
+		order by p.indexid
+	</select>
+	<select id="findLeaderMenuPermissions" parameterClass="java.lang.String" resultMap="simplePermissionResult">
+		select * from permissions p where (p.permissiontype=1 or p.permissiontype=2)
+		<isNotEmpty prepend=" AND " property="value">PARENTID = #value#</isNotEmpty>
+		order by id
+	</select>
+
+	<select id="getLeaderPermissionHasChildren" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from PERMISSIONS P where p.id in(
+		select p.id from PERMISSIONS p where p.parentid in( select pp.id from PERMISSIONS pp where pp.parentid =$id$)
+		and p.ename like '%$LeaderView$'
+		)
+	</select>
+
+	<!--迁移合并方法 -->
+	<select id="getAllChildPermissionsByParentId" parameterClass="java.lang.Long" resultMap="simplePermissionResult">
+		select p.* from permissions p start with id=#permissionId#
+		connect by prior p.id = p.parentid and permissionType='1' and enable=1
+	</select>
+
+</sqlMap>

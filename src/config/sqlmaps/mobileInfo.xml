@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="mobileInfo">
+	<typeAlias alias="MobileInfo" type="com.tianque.mobile.domain.MobileInfo"/>
+	<resultMap class="MobileInfo" id="mobileInfoResultMap">
+		<result property="id" column="id"/>
+		<result property="imsiNo" column="imsiNo"/>
+		<result property="name" column="name"/>
+		<result property="mobileNumber" column="mobileNumber"/>
+		<result property="acceptTime" column="acceptTime"/>
+		<result property="effectivelyTime" column="effectivelyTime"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode"/>
+		<result property="createUser" column="createUser"/>
+		<result property="createDate" column="createDate"/>
+	</resultMap>
+	<select id="getMobileInfoByImsiNo" parameterClass="string" resultMap="mobileInfoResultMap">
+		select * from mobileInfos where imsiNo = #value#
+	</select>
+	<select id="getMobileInfoById" parameterClass="long" resultMap="mobileInfoResultMap">
+		select * from mobileInfos where id = #value#
+	</select>
+	<insert id="addMobileInfo" parameterClass="MobileInfo">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_mobileInfos.NEXTVAL as id from dual ]]>
+		</selectKey>
+		insert into mobileInfos (id, imsiNo, name, mobileNumber, acceptTime, effectivelyTime, orgId, orgInternalCode, createUser, createDate)
+		values(#id#, #imsiNo#, #name#, #mobileNumber#, #acceptTime#, #effectivelyTime#, #organization.id#, #orgInternalCode#, #createUser#, #createDate#)
+	</insert>
+	
+	<sql id="sql_where">
+		from mobileInfos where orgInternalCode like #orgInternalCode#||'%'
+		<dynamic>
+			<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend=" and ">
+					name like #name#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="imsiNo">
+				<isNotEmpty property="imsiNo" prepend=" and ">
+					imsiNo like #imsiNo#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber">
+				<isNotEmpty property="mobileNumber" prepend=" and ">
+					mobileNumber like #mobileNumber#||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="searchMobileInfos" parameterClass="java.util.Map"
+		resultMap="mobileInfoResultMap">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	<select id="countMobileInfos" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	<delete id="deleteMobileInfo" parameterClass="java.lang.String">
+		delete from mobileInfos where imsiNo=#imsiNo#
+	</delete>
+</sqlMap>

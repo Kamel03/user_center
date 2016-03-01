@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="userHasPlatformMessageTypes">	
+	
+	<!-- 保存用户订阅的平台消息类型 -->
+	<insert id="addUserHasPlatformMessageType" parameterClass="java.util.Map">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_userHasPlatformMessageTypes.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+		insert into userHasPlatformMessageTypes (id,userId,messageType) values (#id#,#userId#,#messageTye#)
+	</insert>
+	
+	<!-- 用户订阅的平台消息类型 -->
+	<select id="findUserHasPlatformMessageTypeByUserId" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		select messageType from userHasPlatformMessageTypes where userId = #userId#
+	</select>
+	
+	<!-- 删除用户订阅的平台消息类型 -->
+	<delete id="deleteUserHasPlatformMessageTypeByUserId" parameterClass="java.lang.Long">
+		delete from userHasPlatformMessageTypes where userId = #userId#
+	</delete>
+	
+</sqlMap>

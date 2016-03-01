@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="userSign">
+	<typeAlias alias="UserSign" type="com.tianque.domain.UserSign" />
+	<typeAlias alias="UsedInfo" type="com.tianque.domain.UsedInfo" />
+
+	<resultMap class="UserSign" id="userSignResult">
+		<result property="id" column="ID"/>
+		<result property="userId" column="USERID"/>
+		<result property="org.id" column="ORGID"/>
+		<result property="orgLevel.id" column="ORGLEVELID"/>
+		<result property="orgType.id" column="ORGTYPEID"/>
+		<result property="org.parentOrg.id" column="PARENTORGID"/>
+		<result property="org.orgInternalCode" column="ORGINTERNALCODE"/>
+		<result property="createDate" column="CREATEDATE"/>
+	</resultMap>
+	
+	<resultMap class="UsedInfo" id="userSignForUsedInfoResult">
+		<result property="org.id" column="ORGID"/>
+		<result property="org.orgName" column="ORGNAME"/>
+		<result property="monthActive" column="monthActive"/>
+		<result property="weekActive" column="weekActive"/>
+		<result property="dayActive" column="dayActive"/>
+		<result property="dayAccountSum" column="dayAccountSum"/>
+		<result property="weekAccountSum" column="weekAccountSum"/>
+		<result property="monthAccountSum" column="monthAccountSum"/>
+	</resultMap>
+
+	<!-- 新增用户签到信息 -->
+	<insert id="addUserSign" parameterClass="UserSign">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_USERSIGN.NEXTVAL as id from dual ]]>
+		</selectKey>
+			INSERT INTO USERSIGN(ID,USERID,ORGID,ORGTYPEID,ORGLEVELID,PARENTORGID,ORGINTERNALCODE,CREATEDATE)VALUES(#id#,#userId#,#org.id#,#orgType.id#,#orgLevel.id#,#org.parentOrg.id#,#org.orgInternalCode#,#createDate#)
+	</insert>
+	
+	<select id="getUserSignById" parameterClass="java.lang.Long"
+		resultMap="userSignResult">
+		<![CDATA[select * from USERSIGN where id=#value#]]>
+	</select>
+	
+	<select id="getUserSignByUserId" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+  	<![CDATA[ select count(*) from USERSIGN  where userId=#userId# and to_char(createDate,'yyyy-mm-dd')=#date#]]>
+	</select>
+	
+	<!-- 查询当前月用户登录情况-->
+	<select id="getDaysByUserIdAndDate" parameterClass="java.util.Map" resultClass="java.lang.String">
+  	<![CDATA[ select to_char(createDate,'dd') from USERSIGN  where userId=#userId# and to_char(createDate,'yyyy-mm')=#year#||'-'||#month#]]>
+	</select>
+	
+	<!-- 查询当前月用户一周的登录情况-->
+	<select id="getUserSignOfCurrentWeek" parameterClass="java.util.Map" resultClass="java.lang.String">
+		<![CDATA[SELECT  to_char(U.CREATEDATE,'yyyy-mm-dd') FROM USERSIGN U WHERE U.USERID = #userId#]]>
+		<![CDATA[AND U.CREATEDATE >= trunc(next_day(#sysdate#-8,1)+1) ]]>
+		<![CDATA[AND U.CREATEDATE < trunc(next_day(#sysdate#-8,1)+7)+1 ]]>
+	</select>
+	
+	<select id="getUsedLoginInfoForUsedInfo" parameterClass="java.util.Map" resultMap="userSignForUsedInfoResult">
+		select org.id as ORGID,org.orgname as ORGNAME, 
+			(select count(1) from usersign us where us.orginternalcode like org.orginternalcode || '%' and us.createdate between #beforDayStartDate# and #beforDayEndDate# ) as dayActive,
+			(select count(t.userid)
+          		from (select userid as userid, orginternalcode as orginternalcode
+                  		from usersign us
+                		where us.createdate between #beforWeekMonday# and #beforWeekSunday# 
+                 		group by userid, orginternalcode
+                		having count(userid) >= 30) t
+         		where t.orginternalcode like org.orginternalcode || '%') as weekActive,
+			(select count(t.userid)
+          		from (select userid as userid, orginternalcode as orginternalcode
+                  		from usersign us
+                		where us.createdate between #monthStartDate# and #monthEndDate# 
+                 		group by userid, orginternalcode
+                		having count(userid) >= 30) t
+         		where t.orginternalcode like org.orginternalcode || '%') as monthActive,
+			(select count(1) from users u where u.orginternalcode like org.orginternalcode || '%' and u.state=2 and u.activationtime <![CDATA[<=]]> #beforWeekSunday#) as dayAccountSum,
+			(select count(1) from users u where u.orginternalcode like org.orginternalcode || '%' and u.state=2 and u.activationtime <![CDATA[<=]]>  #beforDayEndDate#) as weekAccountSum,
+			(select count(1) from users u where u.orginternalcode like org.orginternalcode || '%' and u.state=2 and u.activationtime <![CDATA[<=]]>  #monthEndDate# ) as monthAccountSum
+		from organizations org  
+		where org.parentid=#orgId# 
+		and org.orgtype=#orgTypeId#
+		order by org.seq
+	</select>
+</sqlMap>

@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="villageProfile">
+	<typeAlias alias="VillageProfile" type="com.tianque.domain.VillageProfile" />
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization" />
+	<parameterMap id="villageProfiles" class="VillageProfile">
+		<parameter property="id" />
+		<parameter property="organization" />
+		<parameter property="imgUrl" />
+		<parameter property="acreage" />
+		<parameter property="gridNum" />
+		<parameter property="doors" />
+		<parameter property="villagers" />
+		<parameter property="villageRingsters" />
+		<parameter property="villageDelegate" />
+		<parameter property="hamletEconomyinclude" />
+		<parameter property="individualAverageInclude" />
+		<parameter property="villageCollectivityAsset" />
+		<parameter property="interzoneLeading" />
+		<parameter property="department" />
+		<parameter property="villageBuildupSecretary" />
+		<parameter property="buildupSecretaryPhone" />
+		<parameter property="villageDirector" />
+		<parameter property="villageDirectorPhone" />
+		<parameter property="informationPersonA" />
+		<parameter property="informationPersonAPhone" />
+		<parameter property="informationPersonB" />
+		<parameter property="informationPersonBPhone" />
+		<parameter property="natureGeography" />
+		<parameter property="economyGeography" />
+		<parameter property="communityGeography" />
+		<parameter property="itemEngineering" />
+		<parameter property="createUser" />
+		<parameter property="updateUser" />
+		<parameter property="createDate" />
+		<parameter property="updateDate" />
+		<parameter property="description" />
+		<parameter property="orgInternalCode" />
+		<parameter property="introduction" />
+	</parameterMap>
+
+	<resultMap id="villageProfileResult" class="VillageProfile">
+		<result property="id" column="id" />
+		<result property="imgUrl" column="imgUrl" />
+		<result property="acreage" column="acreage" />
+		<result property="gridNum" column="gridNum" />
+		<result property="doors" column="doors" />
+		<result property="villagers" column="villagers" />
+		<result property="villageRingsters" column="villageRingsters" />
+		<result property="villageDelegate" column="villageDelegate" />
+		<result property="hamletEconomyinclude" column="hamletEconomyinclude" />
+		<result property="individualAverageInclude" column="individualAverageInclude" />
+		<result property="villageCollectivityAsset" column="villageCollectivityAsset" />
+		<result property="interzoneLeading" column="interzoneLeading" />
+		<result property="department" column="department" />
+		<result property="villageBuildupSecretary" column="villageBuildupSecretary" />
+		<result property="buildupSecretaryPhone" column="buildupSecretaryPhone" />
+		<result property="villageDirector" column="villageDirector" />
+		<result property="villageDirectorPhone" column="villageDirectorPhone" />
+		<result property="informationPersonA" column="informationPersonA" />
+		<result property="informationPersonAPhone" column="informationPersonAPhone" />
+		<result property="informationPersonB" column="informationPersonB" />
+		<result property="informationPersonBPhone" column="informationPersonBPhone" />
+		<result property="natureGeography" column="natureGeography" />
+		<result property="economyGeography" column="economyGeography" />
+		<result property="communityGeography" column="communityGeography" />
+		<result property="itemEngineering" column="itemEngineering" />
+		<result property="organization" select="villageProfile.loadOrg" column="orgId"/>
+		<result property="createUser" column="createUser" />
+		<result property="updateUser" column="updateUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateDate" column="updateDate" />
+		<result property="description" column="description" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="introduction" column="introduction" />
+		<result property="acreageStr" column="acreage" />
+	</resultMap>
+
+	<resultMap class="Organization" id="organizationResult">
+		<result property="id" column="id" />
+        <result property="orgName" column="orgName"/>
+        <result property="orgInternalCode" column="orgInternalCode" />
+    </resultMap>
+
+	<select id="loadOrg" resultMap="organizationResult" parameterClass="java.lang.Long" >
+		<![CDATA[select o.* from organizations o where o.id=#value#]]>
+	</select>
+	<select id="villageProfile.selectByfullPinyin" resultMap="villageProfileResult"  parameterClass="Organization">
+		<![CDATA[select h.* from villageProfiles h ,
+           organizations o where o.id=h.orgId and o.fullPinyin like #fullPinyin# || '%']]>
+	</select>
+
+	<insert id="addVillageProfile" parameterClass="VillageProfile">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_villageProfiles.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO villageProfiles
+		(id,orgId,imgUrl,acreage,gridNum,doors,villagers,villageRingsters,villageDelegate,hamletEconomyinclude,individualAverageInclude,villageCollectivityAsset,
+		interzoneLeading,department,villageBuildupSecretary,buildupSecretaryPhone,villageDirector,villageDirectorPhone,informationPersonA,
+		informationPersonAPhone,informationPersonB,informationPersonBPhone,natureGeography,economyGeography,communityGeography,itemEngineering
+		,createUser,updateUser,createDate,updateDate,description,orgInternalCode,introduction)
+		VALUES(#id#,#organization.id#,#imgUrl#,#acreage#,#gridNum#,#doors#,#villagers#,#villageRingsters#,#villageDelegate#,#hamletEconomyinclude#,#individualAverageInclude#,#villageCollectivityAsset#,
+		#interzoneLeading#,#department#,#villageBuildupSecretary#,#buildupSecretaryPhone#,#villageDirector#,#villageDirectorPhone#,#informationPersonA#,
+		#informationPersonAPhone#,#informationPersonB#,#informationPersonBPhone#,#natureGeography#,#economyGeography#,#communityGeography#,#itemEngineering#,
+		#createUser#,#updateUser#,#createDate#,#updateDate#,#description#,#orgInternalCode#,#introduction#)
+	</insert>
+	<select id="getvillageProfileResultById" resultMap="villageProfileResult"
+		parameterClass="java.util.Map">
+		select * from (select * from villageprofiles order by createDate desc) where rownum =1
+		<dynamic>
+			<isNotNull prepend="and" property="id">
+				id=#id#
+			</isNotNull>
+			<isNotNull prepend="and" property="orgId">
+				orgId=#orgId#
+			</isNotNull>
+			order by createDate desc
+		</dynamic>
+	</select>
+	<select id="getVillageProfileByOrgId" parameterClass="Long" resultMap="villageProfileResult">
+		select * from villageprofiles where orgid = #value#
+	</select>
+	<update id="updateVillageProfile" parameterClass="VillageProfile">
+		update villageProfiles set
+		<dynamic>
+			    id=#id#,
+				acreage=#acreage#,
+				gridNum=#gridNum#,
+				doors=#doors#,
+				villagers=#villagers#,
+				villageRingsters=#villageRingsters#,
+				villageDelegate=#villageDelegate#,
+				hamletEconomyinclude=#hamletEconomyinclude#,
+				individualAverageInclude=#individualAverageInclude#,
+				villageCollectivityAsset=#villageCollectivityAsset#,
+				imgUrl=#imgUrl#
+			<isNotNull prepend="," property="interzoneLeading">
+				interzoneLeading=#interzoneLeading#
+			</isNotNull>
+			<isNotNull prepend="," property="department">
+				department=#department#
+			</isNotNull>
+			<isNotNull prepend="," property="villageBuildupSecretary">
+				villageBuildupSecretary=#villageBuildupSecretary#
+			</isNotNull>
+			<isNotNull prepend="," property="buildupSecretaryPhone">
+				buildupSecretaryPhone=#buildupSecretaryPhone#
+			</isNotNull>
+			<isNotNull prepend="," property="villageDirector">
+				villageDirector=#villageDirector#
+			</isNotNull>
+			<isNotNull prepend="," property="villageDirectorPhone">
+				villageDirectorPhone=#villageDirectorPhone#
+			</isNotNull>
+			<isNotNull prepend="," property="informationPersonA">
+				informationPersonA=#informationPersonA#
+			</isNotNull>
+			<isNotNull prepend="," property="informationPersonAPhone">
+				informationPersonAPhone=#informationPersonAPhone#
+			</isNotNull>
+			<isNotNull prepend="," property="informationPersonB">
+				informationPersonB=#informationPersonB#
+			</isNotNull>
+			<isNotNull prepend="," property="informationPersonBPhone">
+				informationPersonBPhone=#informationPersonBPhone#
+			</isNotNull>
+			<isNotNull prepend="," property="natureGeography">
+				natureGeography=#natureGeography#
+			</isNotNull>
+			<isNotNull prepend="," property="economyGeography">
+				economyGeography=#economyGeography#
+			</isNotNull>
+			<isNotNull prepend="," property="communityGeography">
+				communityGeography=#communityGeography#
+			</isNotNull>
+			<isNotNull prepend="," property="itemEngineering">
+				itemEngineering=#itemEngineering#
+			</isNotNull>
+
+			<isNotNull prepend="," property="createUser">
+				createUser=#createUser#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="createDate">
+				createDate=#createDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="description">
+				description=#description#
+			</isNotNull>
+			<isNotNull prepend="," property="orgInternalCode">
+				orgInternalCode=#orgInternalCode#
+			</isNotNull>
+			<isNotNull prepend="," property="introduction">
+				introduction=#introduction#
+			</isNotNull>
+		</dynamic>
+		where id=#id#
+	</update>
+	
+	<delete id="deleteVillageProfile" parameterClass="java.lang.Long">
+		delete from
+		villageProfiles where orgId=#orgId#
+	</delete>
+	
+</sqlMap>

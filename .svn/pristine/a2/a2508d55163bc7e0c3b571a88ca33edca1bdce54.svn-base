@@ -1,0 +1,131 @@
+/**
+ * tianque-com.tianque.core.user.dao-ISysRoleDao.java Created on Mar 29, 2009
+ * Copyright (c) 2010 by 杭州天阙科技有限公司
+ */
+package com.tianque.sysadmin.dao;
+
+import java.util.List;
+
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Role;
+import com.tianque.sysadmin.vo.RoleVo;
+
+/**
+ * Title: ***<br>
+ * 
+ * @author <a href=mailto:nifeng@hztianque.com>倪峰</a><br>
+ * @description ***<br/>
+ * @version 1.0
+ */
+public interface RoleDao {
+	/**
+	 * 创建角色
+	 * 
+	 * @param role
+	 */
+	public Role addRole(Role role);
+
+	/**
+	 * 删除角色
+	 * 
+	 * @param role
+	 */
+	public void deleteRoleById(Long id);
+
+	/**
+	 * 更新角色
+	 * 
+	 * @param role
+	 */
+	public Role updateRole(Role role);
+
+	/**
+	 * 根据useInLevel分页查询角色
+	 * 
+	 * @param role
+	 * @param pageNum
+	 * @param pageSize
+	 * @return
+	 */
+	public PageInfo<Role> findAllRolesByUseInLevelForPage(int pageNum,
+			int pageSize, Long useInLevel, String sortField, String order);
+
+	/**
+	 * 分页查询所有的角色
+	 * 
+	 * @param role
+	 * @param pageNum
+	 * @param pageSize
+	 * @return
+	 */
+	public List<Role> findAllRoles();
+
+	public List<Role> findRolesByUserId(Long userId);
+
+	public Role getSimpleRoleById(Long id);
+
+	public Long addRolePermissionRela(Long roleId, Long permissionId);
+
+	public void deleteRolePermissionRelasByRoleId(Long roleId);
+
+	public List<Role> findRolesByRoleNameAndUserInLevel(String roleName,
+			Long levelId);
+
+	public List<Role> findRolesByUserIdAndUseInLevel(Long userId,
+			Long useInLevel);
+
+	public List<Role> findRolesByRoleNameAndUserIdAndUseInLevel(
+			String roleName, Long userId, Long useInLevel);
+
+	public List<Role> findAllRolesDownCurrentOrgLevel(Long useInLevel);
+
+	public List<Role> findDirectlyChildRolesByUseInLevel(Long useInLevel);
+
+	public List<Role> findAllChildRolesByUseInLevel(Long useInLevel);
+
+	public void addRolePermissionRelas(Long roleId, Long[] permissionIds);
+
+	/***
+	 * 根据组织机构查询非admin之外的岗位
+	 * 
+	 * @param useInLevel
+	 * @return
+	 */
+	public List<Role> findRolesByRoleNameAndUserInLevelNoAdmin(String roleName,
+			Long levelId);
+
+	/***
+	 * 根据组织机构查询非admin之外的直辖子岗位
+	 * 
+	 * @param useInLevel
+	 * @return
+	 */
+	public List<Role> findDirectlyChildRolesByUseInLevelNoAdmin(Long useInLevel);
+
+	/***
+	 * 根据组织机构查询非admin之外的所有子岗位
+	 * 
+	 * @param useInLevel
+	 * @return
+	 */
+	public List<Role> findAllChildRolesByUseInLevelNoAdmin(Long useInLevel);
+
+	/**
+	 * 根据用户id统计岗位
+	 * 
+	 * @param userId
+	 * @return
+	 */
+	public Integer countRolesByUserId(Long userId);
+
+	public Integer countRolesByRoleNameAndUserInLevel(String roleName,
+			Long levelId);
+
+	public Integer countRolesByUserIdAndUseInLevel(Long userId, Long useInLevel);
+
+	public void addRolePermissionRelasByRoleVos(List<RoleVo> roleVos);
+
+	public void deleteRolePermissionRelasByRoleVos(List<RoleVo> roleVos);
+
+	public List<RoleVo> findRolesByRoleId(Long roleId);
+}

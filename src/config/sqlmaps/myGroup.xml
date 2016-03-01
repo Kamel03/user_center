@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="myGroup">
+	<typeAlias alias="MyGroup" type="com.tianque.domain.MyGroup" />
+	<typeAlias alias="WorkContacter" type="com.tianque.domain.WorkContacter" />
+	<typeAlias alias="ContacterVo" type="com.tianque.domain.vo.ContacterVo" />
+	<typeAlias alias="User" type="com.tianque.domain.User" />
+	
+	<resultMap id="userInfoResult" class="User">
+		<result property="id" column="id" />
+		<result property="userName" column="userName" />
+		<result property="name" column="name" />
+		<result property="organization.id" column="organizationId" />
+		<result property="workPhone" column="workPhone"></result>
+		<result property="mobile" column="mobile" />
+	</resultMap>
+	
+	<parameterMap id="myGroupParams" class="MyGroup">
+		<parameter property="belongClass" />
+		<parameter property="fullPinyin" />
+		<parameter property="id" />
+		<parameter property="name" />
+		<parameter property="owner" />
+		<parameter property="remark" />
+		<parameter property="simplePinyin" />
+		<parameter property="singleContacters" />
+	</parameterMap>
+	<resultMap id="myGroupResult" class="MyGroup">
+		<result property="belongClass" column="belongClass" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="member" column="member" />
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="owner.id" column="ownerid" />
+		<result property="remark" column="remark" />
+		<result property="simplePinyin" column="simplePinyin" />
+	</resultMap>
+	
+	<resultMap id="myGroupHasUserNameResult" class="MyGroup">
+		<result property="belongClass" column="belongClass" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="member" column="member" />
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="owner.id" column="ownerid" />
+		<result property="remark" column="remark" />
+		<result property="simplePinyin" column="simplePinyin" />
+		 <result property="userName" column="userName" />
+	</resultMap>
+	
+	
+	<resultMap id="contacterVoResult" class="ContacterVo">
+		<result property="belongClass" column="belongClass" />
+		<result property="id" column="id" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="name" column="name" />
+		<result property="remark" column="remark" />
+	</resultMap>
+	
+	<resultMap id="fullWorkContacterResults" extends="contacterVoResult" class="ContacterVo">
+		<result property="fromUser.id" column="fromUserId" />
+	</resultMap>
+	
+	<resultMap id="workContacterResult" class="WorkContacter">
+		<result property="belongClass" column="belongClass" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="id" column="id" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="name" column="name" />
+		<result property="remark" column="remark" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="fromUser.id" column="fromUserId"/>
+	</resultMap>
+	<!-- 新增群组 -->
+	<insert id="addMyGroup" parameterClass="MyGroup">
+	<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_Contacters.NEXTVAL AS ID FROM DUAL ]]>
+	</selectKey>
+	INSERT INTO Contacters(belongClass,fullPinyin,id,name,ownerid,remark,simplePinyin)
+	VALUES(#belongClass#,#fullPinyin#,#id#,#name#,#owner.id#,#remark#,#simplePinyin#)
+	</insert>
+	
+	<update id="updateMyGroup" parameterClass="MyGroup">
+		update Contacters set 
+		<dynamic>
+			id=#id#
+			<isNotNull prepend="," property="belongClass">
+				belongClass=#belongClass#
+			</isNotNull>
+			<isNotNull prepend="," property="fullPinyin">
+				fullPinyin=#fullPinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="owner">
+				ownerId=#owner.id#
+			</isNotNull>
+			<isNotNull prepend="," property="remark">
+				remark=#remark#
+			</isNotNull>
+			<isNotNull prepend="," property="simplePinyin">
+				simplePinyin=#simplePinyin#
+			</isNotNull>
+		 where id=#id#
+		</dynamic>
+	</update>
+	
+	<delete id="deleteMyGroupById" parameterClass="java.lang.Long">
+ 	 delete from Contacters where id=#value#
+	</delete>
+	<select id="getSimpleMyGroupById" parameterClass="java.lang.Long" resultMap="myGroupResult">
+	<![CDATA[select * from Contacters where id=#value# and belongClass='myGroup']]>
+	</select>
+	
+	<select id="findUserContacters" parameterClass="java.lang.Long" resultMap="workContacterResult">
+		select * from Contacters  where fromUserId=#value#
+	</select>
+	
+	<sql id="sql_search">
+		<isEqual property="belongClass" compareValue="myGroup">
+			from Contacters c where 1=1
+			<isPropertyAvailable property="ownerId">
+				<isNotNull property="ownerId" prepend=" and ">
+					ownerId=#ownerId#
+				</isNotNull>
+			</isPropertyAvailable>
+		</isEqual>
+		<isEqual property="belongClass" compareValue="workContact">
+			from Contacters c,GroupHasContacts g where c.id=g.ContacterId 
+		</isEqual>
+		<isPropertyAvailable property="groupId">
+			<isNotEmpty property="groupId" prepend=" and ">
+				g.groupId=#groupId#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="belongClass">
+			<isNotEmpty property="belongClass" prepend=" and ">
+				c.belongClass=#belongClass#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		
+		<isPropertyAvailable property="remark">
+			<isNotEmpty property="remark" prepend=" and ">
+				c.remark like #remark# ||'%'
+			</isNotEmpty>
+		</isPropertyAvailable>
+		
+		<isPropertyAvailable property="name">
+				<isNotNull property="name" prepend=" and ">
+					(c.name like #name#||'%' or c.fullPinyin like #name#||'%' or c.simplePinyin like #name#||'%')
+				</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="mobileNumber">
+				<isNotNull property="mobileNumber" prepend=" and ">
+					c.mobileNumber like #mobileNumber# ||'%'
+				</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="minNums">
+				<isNotNull property="minNums" prepend=" and ">
+					<![CDATA[ c.member >= #minNums# ]]>
+				</isNotNull>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="maxNums">
+				<isNotNull property="maxNums" prepend=" and ">
+					<![CDATA[ c.member <= #maxNums# ]]>
+				</isNotNull>
+		</isPropertyAvailable>
+	</sql>
+	
+	<sql id="sql_where">
+		from Contacters 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					id=#id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="ownerId">
+				<isNotNull property="ownerId" prepend=" and ">
+					ownerId=#ownerId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="belongClass">
+				<isNotNull property="belongClass" prepend=" and ">
+					belongClass=#belongClass#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotNull property="name" prepend=" and ">
+					name like '%'||#name#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fullPinyin">
+				<isNotNull property="fullPinyin" prepend=" and ">
+					fullPinyin like #fullPinyin#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="simplePinyin">
+				<isNotNull property="simplePinyin" prepend=" and ">
+					simplePinyin like #simplePinyin#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findMyGroups" parameterClass="java.util.Map" resultMap="myGroupResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countfindMyGroups" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) 
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countMyGroups" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="findMyGroupHasContacters" parameterClass="java.util.Map" resultMap="fullWorkContacterResults">
+		select c.* from Contacters c,GroupHasContacts g where c.id=g.ContacterId and g.groupId=#groupId#
+		<isPropertyAvailable property="belongClass">
+			<isNotEmpty property="belongClass" prepend=" and ">
+				c.belongClass=#belongClass#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="name">
+				<isNotEmpty property="name" prepend=" and ">
+					(c.name like #name#||'%' or c.fullPinyin like #name#||'%' or c.simplePinyin like #name#||'%')
+				</isNotEmpty>
+		</isPropertyAvailable>
+		<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$
+				  </isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countMyGroupHasContacters" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from Contacters c,GroupHasContacts g where c.id=g.ContacterId and g.groupId=#groupId#
+		<isPropertyAvailable property="belongClass">
+			<isNotEmpty property="belongClass" prepend=" and ">
+				c.belongClass=#belongClass#
+			</isNotEmpty>
+		</isPropertyAvailable>
+		<isPropertyAvailable property="name">
+				<isNotNull property="name" prepend=" and ">
+					(c.name like #name#||'%' or c.fullPinyin like #name#||'%' or c.simplePinyin like #name#||'%')
+				</isNotNull>
+		</isPropertyAvailable>
+	</select>
+	
+	<insert id="addMyGroupHasContacter" parameterClass="java.util.Map">
+		INSERT INTO GroupHasContacts(GroupId,ContacterId)
+		VALUES(#groupId#,#contacterId#)
+	</insert>
+	
+	<delete id="deleteMyGroupHasAllContacter" parameterClass="java.lang.Long">
+ 	 	delete from GroupHasContacts where GroupId=#value#
+	</delete>
+	
+	<delete id="deleteMyGroupHasSingleContacter" parameterClass="java.util.Map">
+ 	 	delete from GroupHasContacts where contacterId=#contacterId#
+ 	 	<isPropertyAvailable property="groupId">
+			<isNotEmpty property="groupId" prepend=" and ">
+				GroupId=#groupId#
+			</isNotEmpty>
+		</isPropertyAvailable>
+	</delete>
+	
+	<select id="findMyGroupsByNameAndPinyinAndOwnerId" parameterClass="java.util.Map" resultMap="myGroupResult">
+		select * from Contacters where (name like #tagName#||'%' or fullPinyin like #tagName#||'%' or simplePinyin like #tagName#||'%' )
+		 and belongClass=#belongClass# 
+		 and ownerId = #ownerId# order by id
+	</select>
+	
+	<select id="findMyGroupHasWorkContacters" parameterClass="java.util.Map" resultMap="workContacterResult">
+		select c.* from Contacters c,GroupHasContacts g where c.id=g.ContacterId and g.groupId=#groupId#
+		<isPropertyAvailable property="belongClass">
+			<isNotEmpty property="belongClass" prepend=" and ">
+				c.belongClass=#belongClass#
+			</isNotEmpty>
+		</isPropertyAvailable>
+	</select>
+	
+	<update id="updateMemberNums" parameterClass="java.util.Map">
+		update contacters set member=#member# where id=#id#
+	</update>
+	
+	
+	
+	<select id="findMyGroupMemberNums" parameterClass="java.util.Map" resultMap="myGroupResult">
+		select * from contacters where id=#id#
+	</select>
+	
+	<select id="findMyGroupHasContactersByCondition" parameterClass="java.util.Map" resultMap="myGroupResult">
+		select c.* 
+		<include refid="sql_search" />
+		<dynamic prepend="order by">
+				<isPropertyAvailable property="sortField">
+					<isNotNull property="sortField">$sortField$
+				  </isNotNull>
+					<isNotNull property="order">$order$</isNotNull>
+				</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countfindMyGroupHasContactersByCondition" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) 
+		<include refid="sql_search" />
+	</select>
+	
+	<!--查询得到某个群组下所有联系人信息-->
+	<select id="findMygroupMemberByGroupId" parameterClass="java.lang.Long" resultMap="myGroupHasUserNameResult">
+		select c.*,u.username as userName from users u ,contacters c where  u.id=c.fromuserid and c.id in(
+        select g.contacterid from GroupHasContacts g,contacters c where g.groupid=#groupId#
+		)
+	</select>
+	
+   <!--根据群组ID查询群组成员数量-->
+   <select id="getGroupMemberNum" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+   	select c.member from Contacters c where id = #value#
+   </select>
+   
+   <!--批量删除群组-->
+	<delete id="deleteAllMyGroup">
+		delete from  Contacters where 
+		 <iterate  conjunction="," open="id in (" close=")">
+				#[]#
+		 </iterate>
+	</delete>
+	
+	<!--批量删除群组与联系人关系表中的数据-->
+	<delete id="deleteContacterAndGroup">
+ 	 	delete from GroupHasContacts where groupId in 
+ 	 	 <iterate  conjunction="," open="(" close=")">
+				#[]#
+		 </iterate>
+	</delete>
+</sqlMap>

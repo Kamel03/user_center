@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="uservo">
+	<!-- 注释说明 -->
+	<typeAlias alias="User" type="com.tianque.domain.User" />
+	<typeAlias alias="Role" type="com.tianque.domain.Role" />
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization" />
+
+
+	<resultMap id="baseUserInfoResult" class="User">
+		<result property="id" column="id" />
+		<result property="userName" column="userName" />
+		<result property="name" column="name" />
+		<result property="organization.id" column="organizationId" />
+	</resultMap>
+
+	<resultMap id="userResult" extends="baseUserInfoResult" class="User">
+		<result property="mobile" column="mobile" />
+		<result property="workCompany" column="workCompany" />
+		<result property="workPhone" column="workPhone" />
+		<result property="homePhone" column="homePhone" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="password" column="password" />
+		<result property="isAdmin" column="isAdmin" />
+		<result property="isLock" column="isLock" />
+		<result property="changePassword" column="changePassword" />
+		<result property="email" column="email" />
+
+		<result property="hasNewMessage" column="hasNewMessage" />
+		<result property="lastLoginTime" column="lastLoginTime" />
+		<result property="lastLoginIp" column="lastLoginIp" />
+		<result property="previousLoginTime" column="previousLoginTime" />
+		<result property="previousLoginIp" column="previousLoginIp" />
+
+		<result property="credits1" column="credits1" />
+		<result property="credits2" column="credits2" />
+
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="failureTimes" column="failureTimes" />
+		<result property="vpdn" column="vpdn"/>
+		<result property="isShutDown" column="isShutDown"/>
+		<result property="connectVpdn" column="connectVpdn"/>
+		<result property="state" column="state"/>
+	</resultMap>
+
+	<resultMap id="fullUserRsult" extends="userResult" class="User">
+		<result property="isGps" column="isGps"/>
+		<result property="isFourTeams" column="isFourTeams"/>
+	</resultMap>
+	
+	<sql id="sql_where">
+		from users  us left join userhasroles  ur on us.id= ur.userid
+		<dynamic prepend=" WHERE ">
+		<isEqual prepend=" AND " property="onLineState" compareValue="2">
+			<!-- 在线 -->
+			 EXISTS (SELECT USS.USERID AS ID FROM USERSESSIONS USS WHERE USS.USERID=US.ID AND USS.ISLOGIN = 1
+			<isEqual prepend="AND" property="accountType" compareValue="2">
+                  	USS.CLIENTMODE = 1
+           	</isEqual>
+			<isEqual prepend="AND" property="accountType" compareValue="1">
+                  	USS.CLIENTMODE = 0
+            </isEqual>
+            )
+		</isEqual>
+		<isEqual prepend=" AND " property="onLineState" compareValue="1">
+			<!-- 不在线  排除所有在线-->
+			NOT EXISTS (SELECT USS.USERID AS ID FROM USERSESSIONS USS WHERE USS.USERID=US.ID AND USS.ISLOGIN = 1)
+		</isEqual>
+		 <isPropertyAvailable property="roleIds">
+	         <isNotEmpty property="roleIds">
+	          <isNotNull property="roleIds" prepend=" and ">
+				 ur.roleid in (
+		            <iterate property="roleIds" conjunction=",">
+						#roleIds[]#
+				    </iterate>
+				  )
+			  </isNotNull>
+			 </isNotEmpty>
+			</isPropertyAvailable>
+		
+		
+			<isPropertyAvailable property="userName">
+				<isNotEmpty property="userName" prepend=" and ">
+					us.userName like '$userName$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+					<isNotEmpty property="name" prepend=" and ">
+						us.name like '$name$%'
+					</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotEmpty  property="orgInternalCode" prepend=" and " >
+					us.orgInternalCode  like '$orgInternalCode$%'
+				</isNotEmpty >
+			</isPropertyAvailable>
+				<isNotEmpty  property="user.organization.orgInternalCode" prepend=" and " >
+					us.orgInternalCode  like '$user.organization.orgInternalCode$%'
+				</isNotEmpty >
+			<isPropertyAvailable property="lastLoginTime">
+				<isNotEmpty property="lastLoginTime" prepend=" and ">
+					to_char(us.lastLoginTime,'yyyy-mm-dd') = #lastLoginTime#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="timeforQuery">
+				<isNotEmpty property="timeforQuery" prepend=" and ">
+				<![CDATA[
+					to_char(us.lastLoginTime,'yyyy-mm-dd') < #timeforQuery#
+					]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isEqual prepend="AND" property="ignoreIsShutDownOrNot" compareValue="1">
+	                us.isShutDown = 0
+	        </isEqual>
+	        <isEqual prepend="AND" property="ignoreIsShutDownOrNot" compareValue="2">
+	                us.isShutDown = 1
+	        </isEqual>
+	       
+	       <isEqual prepend="AND" property="gpsOrNot" compareValue="1">
+                   us.isGps = 0
+            </isEqual>
+            <isEqual prepend="AND" property="gpsOrNot" compareValue="2">
+                   us.isGps = 1
+            </isEqual>
+            
+            <isEqual prepend="AND" property="fourTeamsOrNot" compareValue="1">
+                   us.isFourTeams = 0
+            </isEqual>
+            <isEqual prepend="AND" property="fourTeamsOrNot" compareValue="2">
+                   us.isFourTeams = 1
+            </isEqual>
+            <isEqual prepend="AND" property="accountType" compareValue="1">
+                   us.PCUSABLE = 1
+            </isEqual>
+            <isEqual prepend="AND" property="accountType" compareValue="2">
+                   us.MOBILEUSABLE = 1
+            </isEqual>
+            <isEqual prepend="AND" property="state" compareValue="1">
+                   us.STATE = 1
+            </isEqual>
+            <isEqual prepend="AND" property="state" compareValue="2">
+                   us.STATE = 2
+            </isEqual>
+            <isEqual prepend="AND" property="state" compareValue="3">
+                   us.STATE = 3
+            </isEqual>
+		</dynamic>
+	</sql>
+	<sql id="sql_where_user">
+		from users us 
+		<dynamic prepend=" WHERE ">
+		<isEqual prepend=" AND " property="onLineState" compareValue="2">
+			<!-- 在线 -->
+			 EXISTS (SELECT USS.USERID AS ID FROM USERSESSIONS USS WHERE USS.USERID=US.ID AND USS.ISLOGIN = 1
+			<isEqual prepend="AND" property="accountType" compareValue="2">
+                  	USS.CLIENTMODE = 1
+           	</isEqual>
+			<isEqual prepend="AND" property="accountType" compareValue="1">
+                  	USS.CLIENTMODE = 0
+            </isEqual>
+            )
+		</isEqual>
+		<isEqual prepend=" AND " property="onLineState" compareValue="1">
+			<!-- 不在线  排除所有在线-->
+			NOT EXISTS (SELECT USS.USERID AS ID FROM USERSESSIONS USS WHERE USS.USERID=US.ID AND USS.ISLOGIN = 1)
+		</isEqual>
+		 <isPropertyAvailable property="roleIds">
+	         <isNotEmpty property="roleIds">
+	          <isNotNull property="roleIds" prepend=" and ">
+				 ur.roleid in (
+		            <iterate property="roleIds" conjunction=",">
+						#roleIds[]#
+				    </iterate>
+				  )
+			  </isNotNull>
+			 </isNotEmpty>
+			</isPropertyAvailable>
+		
+		
+			<isPropertyAvailable property="userName">
+				<isNotEmpty property="userName" prepend=" and ">
+					us.userName like '$userName$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+					<isNotEmpty property="name" prepend=" and ">
+						us.name like '$name$%'
+					</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotEmpty  property="orgInternalCode" prepend=" and " >
+					us.orgInternalCode  like '$orgInternalCode$%'
+				</isNotEmpty >
+			</isPropertyAvailable>
+				<isNotEmpty  property="user.organization.orgInternalCode" prepend=" and " >
+					us.orgInternalCode  like '$user.organization.orgInternalCode$%'
+				</isNotEmpty >
+			<isPropertyAvailable property="lastLoginTime">
+				<isNotEmpty property="lastLoginTime" prepend=" and ">
+					to_char(us.lastLoginTime,'yyyy-mm-dd') = #lastLoginTime#
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="timeforQuery">
+				<isNotEmpty property="timeforQuery" prepend=" and ">
+				<![CDATA[
+					to_char(us.lastLoginTime,'yyyy-mm-dd') < #timeforQuery#
+					]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isEqual prepend="AND" property="ignoreIsShutDownOrNot" compareValue="1">
+	                us.isShutDown = 0
+	        </isEqual>
+	        <isEqual prepend="AND" property="ignoreIsShutDownOrNot" compareValue="2">
+	                us.isShutDown = 1
+	        </isEqual>
+	       
+	       <isEqual prepend="AND" property="gpsOrNot" compareValue="1">
+                   us.isGps = 0
+            </isEqual>
+            <isEqual prepend="AND" property="gpsOrNot" compareValue="2">
+                   us.isGps = 1
+            </isEqual>
+            
+            <isEqual prepend="AND" property="fourTeamsOrNot" compareValue="1">
+                   us.isFourTeams = 0
+            </isEqual>
+            <isEqual prepend="AND" property="fourTeamsOrNot" compareValue="2">
+                   us.isFourTeams = 1
+            </isEqual>
+            <isEqual prepend="AND" property="accountType" compareValue="1">
+                   us.PCUSABLE = 1
+            </isEqual>
+            <isEqual prepend="AND" property="accountType" compareValue="2">
+                   us.MOBILEUSABLE = 1
+            </isEqual>
+            <isEqual prepend="AND" property="state" compareValue="1">
+                   us.STATE = 1
+            </isEqual>
+            <isEqual prepend="AND" property="state" compareValue="2">
+                   us.STATE = 2
+            </isEqual>
+            <isEqual prepend="AND" property="state" compareValue="3">
+                   us.STATE = 3
+            </isEqual>
+		</dynamic>
+	</sql>
+	<select id="countUsersByUserCondition" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where_user" />
+			<isPropertyAvailable property="isLock" prepend="and">
+						isLock = #isLock#
+			</isPropertyAvailable>
+	</select>
+	<select id="searchUserListData" parameterClass="java.util.Map" resultMap="fullUserRsult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where_user" />
+			<isPropertyAvailable property="isLock" prepend="and">
+						isLock = #isLock#
+			</isPropertyAvailable>
+	</select>
+	<select id="countUsersByUserConditionBylockStatus" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	<select id="searchUserListDataBylockStatus" parameterClass="java.util.Map" resultMap="fullUserRsult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+	</select>
+	
+</sqlMap>

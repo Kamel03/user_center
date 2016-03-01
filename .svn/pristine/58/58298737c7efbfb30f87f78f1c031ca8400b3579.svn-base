@@ -1,0 +1,708 @@
+package com.tianque.userAuth.api.impl;
+
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.Permission;
+import com.tianque.domain.Role;
+import com.tianque.domain.User;
+import com.tianque.domain.vo.UserCountAboutVo;
+import com.tianque.domain.vo.UserCountVo;
+import com.tianque.domain.vo.UserVo;
+import com.tianque.init.Node;
+import com.tianque.mobile.vo.PermissionVo;
+import com.tianque.sysadmin.service.PermissionService;
+import com.tianque.sysadmin.vo.RoleVo;
+import com.tianque.userAuth.api.PermissionDubboService;
+
+@Component
+public class PermissionDubboServiceImpl implements PermissionDubboService {
+
+	@Autowired
+	private PermissionService permissionService;
+
+	@Override
+	public User addUser(User user) {
+		return permissionService.addUser(user);
+	}
+
+	@Override
+	public PageInfo<User> findUsersForPageByUserIdAndOrgIdAndLockState(
+			Long userId, Long orgId, boolean findChild, Boolean locked,
+			User user, String roleIds, int pageNum, int pageSize,
+			String sortField, String order) {
+		return permissionService.findUsersForPageByUserIdAndOrgIdAndLockState(
+				userId, orgId, findChild, locked, user, roleIds, pageNum,
+				pageSize, sortField, order);
+	}
+
+	@Override
+	public User updateUser(User user) {
+		return permissionService.updateUser(user);
+	}
+
+	@Override
+	public User updateUserFromGridTeam(User user){
+		return permissionService.updateUserFromGridTeam(user);
+	}
+	
+	@Override
+	public User updateUserForMobile(User user) {
+		return permissionService.updateUserForMobile(user);
+	}
+
+	@Override
+	public User updateUserByShutdown(User user) {
+		return permissionService.updateUserByShutdown(user);
+	}
+
+	@Override
+	public void deleteRoleById(Long id) {
+		permissionService.deleteRoleById(id);
+	}
+
+	@Override
+	public List<PermissionVo> findUserAllPermissionEnameAndCnameByUserId(
+			Long userId) {
+		return permissionService
+				.findUserAllPermissionEnameAndCnameByUserId(userId);
+	}
+
+	@Override
+	public Role findRoleById(Long id) {
+		return permissionService.findRoleById(id);
+	}
+	
+	@Override
+	public List<Role> findAllRoles(){
+		return permissionService.findAllRoles();
+	}
+	
+	@Override
+	public List<String> getRolePermissionEnameByRoleId(List<Long> addPermissionIds){
+		return permissionService.getRolePermissionEnameByRoleId(addPermissionIds);
+	}
+
+	@Override
+	public PageInfo<Role> findAllRolesByUseInLevelForPage(int pageNum,
+			int pageSize, Long id, String sortField, String order) {
+		return permissionService.findAllRolesByUseInLevelForPage(pageNum,
+				pageSize, id, sortField, order);
+	}
+
+	@Override
+	public Role addRole(Role role, String[] names) {
+		return permissionService.addRole(role, names);
+	}
+
+	@Override
+	public Role updateRole(Role role, String[] enames) {
+		return permissionService.updateRole(role, enames);
+	}
+
+	@Override
+	public Role findRoleByRoleNameAndUserInLevel(String roleName, Long levelId) {
+		return permissionService.findRoleByRoleNameAndUserInLevel(roleName,
+				levelId);
+	}
+
+	@Override
+	public List<Role> findRolesByUserId(Long userId) {
+		return permissionService.findRolesByUserId(userId);
+	}
+
+	@Override
+	public List<Role> findRolesByUserIdAndUseInLevel(Long userId,
+			Long useInLevel) {
+		return permissionService.findRolesByUserIdAndUseInLevel(userId,
+				useInLevel);
+	}
+
+	@Override
+	public List<Role> findRolesByRoleNameAndUserIdAndUseInLevel(
+			String roleName, Long userId, Long useInLevel) {
+		return permissionService.findRolesByRoleNameAndUserIdAndUseInLevel(
+				roleName, userId, useInLevel);
+	}
+
+	@Override
+	public List<Role> findRolesByUserInLevel(Long useInLevel) {
+		return permissionService.findRolesByUserInLevel(useInLevel);
+	}
+
+	@Override
+	public List<Role> findRolesByUserInLevel(String roleName, Long useInLevel) {
+		return permissionService.findRolesByUserInLevel(roleName, useInLevel);
+	}
+
+	@Override
+	public List<Role> findDirectlyChildRolesByUseInLevel(Long useInLevel) {
+		return permissionService.findDirectlyChildRolesByUseInLevel(useInLevel);
+	}
+
+	@Override
+	public List<Role> findAllChildRolesByUseInLevel(Long useInLevel) {
+		return permissionService.findAllChildRolesByUseInLevel(useInLevel);
+	}
+
+	@Override
+	public List<Role> findAllRolesDownCurrentOrgLevel(Long useInLevel) {
+		return permissionService.findAllRolesDownCurrentOrgLevel(useInLevel);
+	}
+
+	@Override
+	public List<Role> findRolesByUserInLevelNoAdmin(Long useInLevel) {
+		return permissionService.findRolesByUserInLevelNoAdmin(useInLevel);
+	}
+
+	@Override
+	public List<Role> findDirectlyChildRolesByUseInLevelNoAdmin(Long useInLevel) {
+		return permissionService
+				.findDirectlyChildRolesByUseInLevelNoAdmin(useInLevel);
+	}
+
+	@Override
+	public List<Role> findAllChildRolesByUseInLevelNoAdmin(Long useInLevel) {
+		return permissionService
+				.findAllChildRolesByUseInLevelNoAdmin(useInLevel);
+	}
+
+	@Override
+	public PageInfo<Permission> findAllPermissionsForPage(int pageNum,
+			int pageSize) {
+		return permissionService.findAllPermissionsForPage(pageNum, pageSize);
+	}
+
+	@Override
+	public List<Permission> findAllPermissionsByRoleId(Long roleId)
+			throws Exception {
+		return permissionService.findAllPermissionsByRoleId(roleId);
+	}
+
+	@Override
+	public List<String> findUserAllPermissionEnameByUserId(Long userId) {
+		return permissionService.findUserAllPermissionEnameByUserId(userId);
+	}
+
+	@Override
+	public User getSimpleUserById(Long id) {
+		return permissionService.getSimpleUserById(id);
+	}
+
+	@Override
+	public User getFullUserById(Long id) {
+		return permissionService.getFullUserById(id);
+	}
+
+	@Override
+	public User getFullUserByUerName(String userName) {
+		return permissionService.getFullUserByUerName(userName);
+	}
+
+	@Override
+	public String[][] findUserForAutocomplete(Long parentOrgId, String text,
+			Boolean locked, boolean searchChildOrg, int size) {
+		return permissionService.findUserForAutocomplete(parentOrgId, text,
+				locked, searchChildOrg, size);
+	}
+
+	@Override
+	public void deleteUserMultiZoneByUserId(Long userId) {
+		permissionService.deleteUserMultiZoneByUserId(userId);
+	}
+
+	@Override
+	public void deleteUserRoleRelasByUserId(Long userId) {
+		permissionService.deleteUserRoleRelasByUserId(userId);
+	}
+
+	@Override
+	public void resetUserPasswordByUserId(Long userId, String password) {
+		permissionService.resetUserPasswordByUserId(userId, password);
+	}
+
+	@Override
+	public String resetUserPasswordByUserName(String userName, String password) {
+		return permissionService
+				.resetUserPasswordByUserName(userName, password);
+	}
+
+	@Override
+	public Long addUserMultiZone(Long userId, Long orgId) {
+		return permissionService.addUserMultiZone(userId, orgId);
+	}
+
+	@Override
+	public User findUserByUserName(String userName) {
+		return permissionService.findUserByUserName(userName);
+	}
+
+	@Override
+	public List<User> findChildUsersByEnameAndOrgCode(String ename,
+			String orgcode) {
+		return permissionService
+				.findChildUsersByEnameAndOrgCode(ename, orgcode);
+	}
+
+	@Override
+	public List<User> findChildUsersByEnameAndInternalCode(String ename,
+			String internalCode) {
+		return permissionService.findChildUsersByEnameAndInternalCode(ename,
+				internalCode);
+	}
+
+	@Override
+	public Long addUserRoleRela(Long userId, Long roleId) {
+		return permissionService.addUserRoleRela(userId, roleId);
+	}
+
+	@Override
+	public boolean updatePasswordSuccess(Long id, String oldPassword,
+			String currentPassword, String validatePassword, String email) {
+		return permissionService.updatePasswordSuccess(id, oldPassword,
+				currentPassword, validatePassword, email);
+	}
+
+	@Override
+	public boolean isRoleUsed(Long id) {
+		return permissionService.isRoleUsed(id);
+	}
+
+	@Override
+	public void lockOperate(Long id, boolean lock) {
+		permissionService.lockOperate(id, lock);
+	}
+
+	@Override
+	public boolean isUserHasPermission(Long userId, String ename) {
+		return permissionService.isUserHasPermission(userId, ename);
+	}
+
+	@Override
+	public void updateUserRoleRela(Long userId, Long[] roleIds) {
+		permissionService.updateUserRoleRela(userId, roleIds);
+	}
+
+	@Override
+	public void updateUserMultiZone(Long userId, Long[] zoneIds) {
+		permissionService.updateUserMultiZone(userId, zoneIds);
+	}
+
+	@Override
+	public int countUsersByOrgInternalCode(String orgInternalCode) {
+		return permissionService.countUsersByOrgInternalCode(orgInternalCode);
+	}
+
+	@Override
+	public void updateFailureTimesById(Long userId, Integer failureTimes) {
+		permissionService.updateFailureTimesById(userId, failureTimes);
+	}
+
+	@Override
+	public boolean updateUserDetails(User user) {
+		return permissionService.updateUserDetails(user);
+	}
+
+	@Override
+	public List<User> findUsersByOrgId(Long id) {
+		return permissionService.findUsersByOrgId(id);
+	}
+
+	@Override
+	public List<Permission> getRootPermissions() {
+		return permissionService.getRootPermissions();
+	}
+
+	@Override
+	public List<Permission> getPermissionByParentId(Long parentId) {
+		return permissionService.getPermissionByParentId(parentId);
+	}
+
+	@Override
+	public List<Permission> getPermissionByParentId(Long parentId, Long userId) {
+		return permissionService.getPermissionByParentId(parentId);
+	}
+
+	@Override
+	public PageInfo<Permission> getChildPermissions(Long parentId) {
+		return permissionService.getChildPermissions(parentId);
+	}
+
+	@Override
+	public Permission updatePermissionName(Permission permission) {
+		return permissionService.updatePermissionName(permission);
+	}
+
+	@Override
+	public void setIndexIdPermission(Long parentId) {
+		permissionService.setIndexIdPermission(parentId);
+	}
+
+	@Override
+	public Permission getPermissionByPermissionId(Long id) {
+		return permissionService.getPermissionByPermissionId(id);
+	}
+
+	@Override
+	public List<Permission> findPermissionsByPermissionName(String name,
+			int pageNum, int pageSize) {
+		return permissionService.findPermissionsByPermissionName(name, pageNum,
+				pageSize);
+	}
+
+	@Override
+	public List<Long> searchParentPermissionIds(Long id) {
+		return permissionService.searchParentPermissionIds(id);
+	}
+
+	@Override
+	public Permission findPermissionByEname(String ename) {
+		return permissionService.findPermissionByEname(ename);
+	}
+
+	@Override
+	public boolean movePreviousOrNext(Permission p, String mode) {
+		return permissionService.movePreviousOrNext(p, mode);
+	}
+
+	@Override
+	public boolean moveFirstOrLast(Permission p, String mode) {
+		return permissionService.moveFirstOrLast(p, mode);
+	}
+
+	@Override
+	public List<Node> getAllNodes() {
+		return permissionService.getAllNodes();
+	}
+
+	@Override
+	public List<Node> getCheckedPermssionTree() {
+		return permissionService.getCheckedPermssionTree();
+	}
+
+	@Override
+	public List<Node> getMenuPermissionTree() {
+		return permissionService.getMenuPermissionTree();
+	}
+
+	@Override
+	public List<Node> getMenuPermissionTree(String nodeId, Integer n_lv) {
+		return permissionService.getMenuPermissionTree(nodeId, n_lv);
+	}
+
+	@Override
+	public List<Node> checkPermissionTree(List<Permission> permissions,
+			List<Node> permissionNodes) {
+		return permissionService.checkPermissionTree(permissions,
+				permissionNodes);
+	}
+
+	@Override
+	public Permission addPermission(Permission permission) {
+		return permissionService.addPermission(permission);
+	}
+
+	@Override
+	public PageInfo<User> findUsersBylockStatus(String status, User user,
+			Integer page, Integer rows, String sidx, String sord) {
+		return permissionService.findUsersBylockStatus(status, user, page,
+				rows, sidx, sord);
+	}
+
+	@Override
+	public boolean oldPasswordIsRight(Long userId, String oldPassword) {
+		return permissionService.oldPasswordIsRight(userId, oldPassword);
+	}
+
+	@Override
+	public boolean deleteUserById(Long[] ids) {
+		return permissionService.deleteUserById(ids);
+	}
+
+	@Override
+	public void initWorkBench(Long id, Boolean isFristWorkBench) {
+		permissionService.initWorkBench(id, isFristWorkBench);
+	}
+
+	@Override
+	public Permission findPermissionByNormalUrl(String normalUrl) {
+		return permissionService.findPermissionByNormalUrl(normalUrl);
+	}
+
+	@Override
+	public Long[] reSetPatelConfigByRoleId(Long roleId) {
+		return permissionService.reSetPatelConfigByRoleId(roleId);
+	}
+
+	@Override
+	public void reSetPatelConfigByUserId(Long userId) {
+		permissionService.reSetPatelConfigByUserId(userId);
+	}
+
+	@Override
+	public List<Long> findUserIdsByOrgIds(List<Long> orgIdList) {
+		return permissionService.findUserIdsByOrgIds(orgIdList);
+	}
+
+	@Override
+	public List<Long> findUserIdsByRoleIds(List<Long> roleIdList) {
+		return permissionService.findUserIdsByRoleIds(roleIdList);
+	}
+	
+	@Override
+	public List<User> findUsersByRoleIds(List<Long> roleIdList){
+		return permissionService.findUsersByRoleIds(roleIdList);
+	}
+
+	@Override
+	public List<Long> findUserIdsByByOrgTypeAndOrgLevelAndOrgParentId(
+			Integer orgTypeInternalId, Integer orgLevelInternalId,
+			Long orgParentId) {
+		return permissionService
+				.findUserIdsByByOrgTypeAndOrgLevelAndOrgParentId(
+						orgTypeInternalId, orgLevelInternalId, orgParentId);
+	}
+
+	@Override
+	public List<Long> findUserIdsByOrgIdAndRoleId(Long orgId, Long roleId) {
+		return permissionService.findUserIdsByOrgIdAndRoleId(orgId, roleId);
+	}
+
+	@Override
+	public PageInfo<User> findUsersForPageInfoListByOrgInternalCodeAndRoleId(
+			String orgInternalCodeById, Long roleId, Integer page,
+			Integer rows, String sidx, String sord) {
+		return permissionService
+				.findUsersForPageInfoListByOrgInternalCodeAndRoleId(
+						orgInternalCodeById, roleId, page, rows, sidx, sord);
+	}
+
+	@Override
+	public Integer countRolesByUserId(Long userId) {
+		return permissionService.countRolesByUserId(userId);
+	}
+
+	@Override
+	public Integer countRolesByRoleNameAndUserInLevel(Long levelId) {
+		return permissionService.countRolesByRoleNameAndUserInLevel(levelId);
+	}
+
+	@Override
+	public Integer countRolesByUserIdAndUseInLevel(Long userId, Long useInLevel) {
+		return permissionService.countRolesByUserIdAndUseInLevel(userId,
+				useInLevel);
+	}
+
+	@Override
+	public Role addRolePermissionRelasByRoleVos(Role role,
+			List<RoleVo> roelVoList) {
+		return permissionService.addRolePermissionRelasByRoleVos(role,
+				roelVoList);
+	}
+
+	@Override
+	public Role updateRolePermissionRelasByRoleVos(Role role,
+			List<RoleVo> roelVoList) {
+		return permissionService.updateRolePermissionRelasByRoleVos(role,
+				roelVoList);
+	}
+
+	@Override
+	public Role copyRole(Role role) {
+		return permissionService.copyRole(role);
+	}
+
+	@Override
+	public User addMobileUser(User user, Boolean isImport) {
+		return permissionService.addMobileUser(user, isImport);
+	}
+
+	@Override
+	public User findUserByMobileUserName(String userName) {
+		return permissionService.findUserByMobileUserName(userName);
+	}
+
+	@Override
+	public PageInfo<User> findMobileUsers(UserVo userVo, int pageNum,
+			int pageSize, String sortField, String sord) {
+		return permissionService.findMobileUsers(userVo, pageNum, pageSize,
+				sortField, sord);
+	}
+
+	@Override
+	public User updateMobileUser(User user) {
+		return permissionService.updateMobileUser(user);
+	}
+
+	@Override
+	public User updateMobileUserVersion(User user) {
+		return permissionService.updateMobileUserVersion(user);
+	}
+
+	@Override
+	public void matchupOrganizationMobileUserByIds(Long[] ids,
+			Organization organization) {
+		permissionService.matchupOrganizationMobileUserByIds(ids, organization);
+	}
+
+	@Override
+	public Boolean validateMobileUserVpdn(String vpdnTemp, Long[] ids) {
+		return permissionService.validateMobileUserVpdn(vpdnTemp, ids);
+	}
+
+	@Override
+	public void recycleMobileUser(Long[] ids) {
+		permissionService.recycleMobileUser(ids);
+	}
+
+	@Override
+	public String[][] getExportPopertyArray() {
+		return permissionService.getExportPopertyArray();
+	}
+
+	@Override
+	public int countMobileUsers(UserVo userVo, int pageNum, int pageSize,
+			String sortField, String sord) {
+		return permissionService.countMobileUsers(userVo, pageNum, pageSize,
+				sortField, sord);
+	}
+
+	@Override
+	public User findUserByImsi(String imsi) {
+		return permissionService.findUserByImsi(imsi);
+	}
+
+	@Override
+	public int countFourthAccountUserByOrg(Organization organization) {
+		return permissionService.countFourthAccountUserByOrg(organization);
+	}
+
+	@Override
+	public boolean findUserAllPermissionByUserIdAndPermissionEname(Long userId,
+			String ename) {
+		return permissionService
+				.findUserAllPermissionByUserIdAndPermissionEname(userId, ename);
+	}
+
+	@Override
+	public List<Node> getMenuLeaderPermissionTree(String nodeId, Integer n_lv) {
+		return permissionService.getMenuLeaderPermissionTree(nodeId, n_lv);
+	}
+
+	@Override
+	public Boolean setPermissionSeq(Long id, Long seq) {
+		return permissionService.setPermissionSeq(id, seq);
+	}
+
+	@Override
+	public boolean isCanSeq(Long id, Long seq) {
+		return permissionService.isCanSeq(id, seq);
+	}
+
+	@Override
+	public void openOrCloseGpsByUserId(Long[] ids, String mode) {
+		permissionService.openOrCloseGpsByUserId(ids, mode);
+	}
+
+	@Override
+	public void openOrCloseFourTeamsByUserId(Long[] ids, String mode) {
+		permissionService.openOrCloseFourTeamsByUserId(ids, mode);
+	}
+
+	@Override
+	public List<Long> getRolePermissionByRoleId(Long roleId) {
+		return permissionService.getRolePermissionByRoleId(roleId);
+	}
+
+	@Override
+	public List<String> findPermissionsEnameByUserId(Long id) {
+		return permissionService.findPermissionsEnameByUserId(id);
+	}
+
+	@Override
+	public List<Permission> findAllPermissionsByCurrentUserRoleId(Long userId,
+			Integer permissiontype) throws Exception {
+		return permissionService.findAllPermissionsByCurrentUserRoleId(userId,
+				permissiontype);
+	}
+
+	@Override
+	public boolean updateUserStateByUserIds(Long[] ids, Long state) {
+		return permissionService.updateUserStateByUserIds(ids, state);
+	}
+
+	@Override
+	public PageInfo<UserCountVo> findUserCount(Long orgId, Long accountType,
+			Integer page, Integer rows, String sidx, String sord) {
+		return permissionService.findUserCount(orgId, accountType, page, rows,
+				sidx, sord);
+	}
+
+	@Override
+	public String[][] getUserCountExportPopertyArray() {
+		return permissionService.getUserCountExportPopertyArray();
+	}
+
+	@Override
+	public List<Permission> getAllChildPermissionsByParentId(Long permissionId) {
+		return permissionService.getAllChildPermissionsByParentId(permissionId);
+	}
+
+	@Override
+	public Permission getSimplePermissionById(Long id) {
+		return permissionService.getSimplePermissionById(id);
+	}
+
+	public PermissionService getPermissionService() {
+		return permissionService;
+	}
+
+	public void setPermissionService(PermissionService permissionService) {
+		this.permissionService = permissionService;
+	}
+
+	@Override
+	public List<Permission> getChildMenuByEname(String string) {
+		return permissionService.getChildMenuByEname(string);
+	}
+
+	@Override
+	public List<Permission> getChildMenuByEnameAndExcludeButtons(String string) {
+		return permissionService.getChildMenuByEnameAndExcludeButtons(string);
+	}
+
+	@Override
+	public int countAllLoginCount(Long orgId) {
+		return permissionService.countAllLoginCount(orgId);
+	}
+
+	@Override
+	public boolean findUserAllPermissionByUserIdAndPermissionEnames(
+			Long userId, String[] enames) {
+		if (enames == null) {
+			return false;
+		}
+		return permissionService
+				.findUserAllPermissionByUserIdAndPermissionEnames(userId,
+						enames);
+	}
+
+	@Override
+	public PageInfo<UserCountAboutVo> findUsersAboutUserCount(Long orgId,
+			Date loginBeginDate, Date loginEndDate, Date createBeginDate, Date createEndDate, int pageNum, int pageSize,
+			String sortField, String order, Long pcOrMobile, Long isSelectLoginTime, Date beginActivationTime, Date endActivationTime, Long isSelectActivationTime) {
+		return permissionService.findUsersAboutUserCount(orgId, loginBeginDate, loginEndDate,createBeginDate,createEndDate, pageNum, pageSize, 
+				sortField, order, pcOrMobile, isSelectLoginTime, beginActivationTime, endActivationTime, isSelectActivationTime);
+	}
+
+	@Override
+	public List<Permission> findAllPermissionMobile() {
+		return permissionService.findAllPermissionMobile();
+	}
+
+}

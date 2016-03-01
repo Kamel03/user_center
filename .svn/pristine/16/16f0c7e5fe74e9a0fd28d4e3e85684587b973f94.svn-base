@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="patelConfiger">
+	<insert id="buildConfiguration" parameterClass="map">
+		insert into patelConfiger(userid,keyname,patelConfigerindex,tabKeyName,tabConfigerindex)
+		values(#userId#,#keyName#,#index#,#tabKeyName#,#tabConfigerindex#)
+	</insert>
+	
+	<select id="getConfigurationByUserId" parameterClass="java.lang.Long" resultClass="java.util.HashMap">
+	select distinct keyname,patelConfigerindex from patelConfiger where userid=#value# order by patelConfigerindex
+	</select>
+	
+	<select id="getIndexByUserIdAndKeyname" parameterClass="map" resultClass="int">
+	<![CDATA[select patelConfigerindex from patelConfiger where userid=#userId# and keyname=#keyName#]]>
+	</select>
+	
+	<select id="getTabConfigurationByUserId" parameterClass="map" resultClass="string">
+	<![CDATA[select tabKeyName from patelConfiger where userid=#userId# and keyname=#keyName# and tabKeyName is not null  order by tabConfigerindex]]>
+	</select>
+	
+	<update id="updateConfigurationIndex" parameterClass="map">
+	     update patelConfiger set
+	     patelConfigerindex=#index#
+	     where userid=#userId# and  keyname=#keyName#
+	</update>
+	
+	<update id="updateTabConfigurationIndex" parameterClass="map">
+	     update patelConfiger set
+	     tabConfigerindex=#tabIndex#
+	     where userid=#userId# and  keyname=#keyName# and tabKeyName=#tabKeyName#
+	</update>
+	
+	<delete id="deleteUserConfiguration" parameterClass="java.lang.Long">
+		delete from patelConfiger where userid=#value#
+	</delete>
+	
+	<delete id="deleteConfiguration" parameterClass="map">
+		delete from patelConfiger where userid=#userId# and keyname=#keyName# 
+	</delete>
+	
+	<delete id="deleteTabConfiguration" parameterClass="map">
+		delete from patelConfiger where userid=#userId# and keyname=#keyName# and tabKeyName=#tabKeyName#
+	</delete>
+	
+	
+	<select id="getConfigurationIndex"  resultClass="int">
+	<![CDATA[select max(patelConfigerindex) from patelConfiger ]]>
+	</select>
+	
+	<select id="getTabConfigurationIndex" parameterClass="string" resultClass="int">
+	<![CDATA[select max(tabConfigerindex) from patelConfiger where keyName=#value#]]>
+	</select>
+	
+	<delete id="deleteConfigurationByUserIds" parameterClass="map">
+		delete from patelConfiger p
+		<dynamic prepend="WHERE">
+			<isNotNull property="ids">
+				p.userid in
+				<iterate property="ids" conjunction="," open="(" close=")">
+					#ids[]#
+				</iterate>
+			</isNotNull>
+			<isNull property="ids">
+				p.userid = ''
+			</isNull>
+		</dynamic>
+	</delete>
+	
+</sqlMap>

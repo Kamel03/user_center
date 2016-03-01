@@ -1,0 +1,504 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="publicNotice">
+	<typeAlias alias="PublicNotice" type="com.tianque.publicNotice.domain.PublicNotice"/>
+	<typeAlias alias="PublicNoticeAttachFiles" type="com.tianque.publicNotice.domain.PublicNoticeAttachFiles"/>
+	<resultMap class="PublicNotice" id="publicNoticeResult">
+		<result  property="id" column="id"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="publicNoticeTitle" column="publicNoticeTitle" />
+		<result property="userId" column="userId" />
+		<result property="noticeEditor" column="noticeEditor" />
+		<result property="editorDate" column="editorDate" />
+		<result property="publicNoticeMatter" column="publicNoticeMatter" />
+		<result property="overdueDate" column="overdueDate" />
+		<result property="isAttachment" column="isAttachment"/>
+		<result property="createUser" column="createUser"  />
+		<result property="createDate" column="createDate"  />
+		<result property="updateDate" column="updateDate"  />
+		<result property="publicNoticeInscribe" column="publicNoticeInscribe"  />
+		<result property="updateUser" column="updateUser"  />
+
+	</resultMap>
+
+	<resultMap class="PublicNotice" id="publicNoticeResultList">
+		<result  property="id" column="id"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="publicNoticeTitle" column="publicNoticeTitle" />
+		<result property="userId" column="userId" />
+		<result property="noticeEditor" column="noticeEditor" />
+		<result property="editorDate" column="editorDate" />
+		<result property="publicNoticeMatter" column="publicNoticeMatter" />
+		<result property="overdueDate" column="overdueDate" />
+		<result property="isAttachment" column="isAttachment"/>
+		<result property="publicNoticeInscribe" column="publicNoticeInscribe"/>
+		<result property="createUser" column="createUser"  />
+		<result property="createDate" column="createDate"  />
+		<result property="updateDate" column="updateDate"  />
+		<result property="updateUser" column="updateUser"  />
+		<result property="isoverdate" column="isoverdate"  />
+		<result property="noticeFiles" column="id" select="publicNotice.getPublicNoticeAttachFileByPublicNoticeId" />
+	</resultMap>
+	<resultMap class="PublicNotice" id="publicNoticeReceiveResultList">
+		<result  property="id" column="id"/>
+		<result  property="readtime" column="readtime"/>
+		<result property="organization.id" column="orgId"/>
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="publicNoticeTitle" column="publicNoticeTitle" />
+		<result property="userId" column="userId" />
+		<result property="noticeEditor" column="noticeEditor" />
+		<result property="editorDate" column="editorDate" />
+		<result property="publicNoticeMatter" column="publicNoticeMatter" />
+		<result property="overdueDate" column="overdueDate" />
+		<result property="isAttachment" column="isAttachment"/>
+		<result property="createUser" column="createUser"  />
+		<result property="publicNoticeInscribe" column="publicNoticeInscribe"  />
+		<result property="createDate" column="createDate"  />
+		<result property="updateDate" column="updateDate"  />
+		<result property="updateUser" column="updateUser"  />
+		<result property="isoverdate" column="isoverdate"  />
+		<result property="noticeFiles" column="id" select="publicNotice.getPublicNoticeAttachFileByPublicNoticeId" />
+	</resultMap>
+
+	<resultMap class="PublicNoticeAttachFiles" id="PublicNoticeAttachFilesResult">
+		<result  property="id" column="id"/>
+		<result property="noticeId" column="noticeId" />
+		<result property="fileName" column="fileName" />
+		<result property="fileActualUrl" column="fileActualUrl" />
+	</resultMap>
+
+	<insert id="addPublicNotice" parameterClass="PublicNotice">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT s_publicNotice.NEXTVAL AS ID FROM DUAL]]>
+		</selectKey>
+    insert into publicNotice
+    (id,orgId,orgInternalCode,publicNoticeTitle,userId,noticeEditor,editorDate,
+     publicNoticeMatter,overdueDate,createUser,createDate,updateUser,updateDate,isAttachment,publicNoticeInscribe)
+    values
+    (#id#,#organization.id#,#orgInternalCode#,#publicNoticeTitle#,#userId#,#noticeEditor#,
+     #editorDate#,#publicNoticeMatter#,#overdueDate#, #createUser#,#createDate#,#updateUser#,#updateDate#,
+     #isAttachment#,#publicNoticeInscribe#)
+	</insert>
+
+	<select id="getPublicNoticeByOrgCode" parameterClass="java.lang.String" resultMap="publicNoticeResult">
+	<![CDATA[select * from publicNotice where #value# like orginternalcode||'%' and (overdueDate is null or  ROUND(TO_NUMBER(overdueDate - SYSDATE))>0)]]>
+	</select>
+
+	<select id="getPublicNoticeById" parameterClass="java.lang.Long" resultMap="publicNoticeResultList">
+     select id,orgId,orgInternalCode,publicNoticeTitle,userId,noticeEditor,editorDate,
+     publicNoticeMatter,overdueDate,createUser,createDate,updateUser,updateDate,isAttachment,
+     CASE
+          WHEN overduedate is null
+             THEN '不限'
+          WHEN overduedate >= sysdate
+             THEN '否'
+          ELSE '是'
+       END isoverdate,publicNoticeInscribe  from publicNotice where id=#value#
+	</select>
+	<sql id="sql_where">
+    from publicNotice
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="publicNoticeLevel"><!-- 判断是否有publicNoticeLevel这个属性名 -->
+				<isNotEmpty property="publicNoticeLevel" prepend="and"><!-- 如果level属性的值不为空 -->
+					<isEqual property="publicNoticeLevel" compareValue="0">
+						<isNotEmpty property="orgInternalCode">
+          orgInternalCode=#orgInternalCode#
+						</isNotEmpty>
+					</isEqual>
+					<isEqual property="publicNoticeLevel" compareValue="1">
+						<isNotEmpty property="orgInternalCode">
+         orgInternalCode !=#orgInternalCode# and orgInternalCode like '$orgInternalCode$%' 
+						</isNotEmpty>
+					</isEqual>
+					<isEqual property="publicNoticeLevel" compareValue="2">
+						<isNotEmpty property="orgInternalCode">
+         #orgInternalCode# like orgInternalCode||'%'
+						</isNotEmpty>
+					</isEqual>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="startDate">
+				<isNotEmpty property="startDate" prepend="and">
+				<![CDATA[editorDate >= #startDate#]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endDate" prepend="and">
+				<isNotEmpty property="endDate">
+				<![CDATA[editorDate <= trunc(#endDate#+1)]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="editorTitle" prepend="and">
+				<isNotEmpty property="editorTitle">
+       publicNoticeTitle like '%$editorTitle$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+
+	<select id="findPublicNotices" parameterClass="java.util.Map" resultMap="publicNoticeResultList">
+    select id,orgId,orgInternalCode,publicNoticeTitle,userId,noticeEditor,editorDate,
+     publicNoticeMatter,overdueDate,createUser,createDate,updateUser,updateDate,isAttachment,
+    CASE
+          WHEN overduedate is null
+             THEN '不限'
+          WHEN overduedate >= sysdate
+             THEN '否'
+          ELSE '是'
+       END isoverdate,publicNoticeInscribe
+
+		<include refid="sql_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countPublicNotices" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count"/>
+		<include refid="sql_where"/>
+	</select>
+ 
+	<sql id="sql_queryPublicNoticeReceiveForList">
+ 	select readtime,id,orgId,orgInternalCode,publicNoticeTitle,userId,noticeEditor,editorDate,
+     publicNoticeMatter,overdueDate,createUser,createDate,updateUser,updateDate,isAttachment,
+    CASE
+          WHEN overduedate is null
+             THEN '不限'
+          WHEN overduedate >= sysdate
+             THEN '否'
+          ELSE '是'
+       END isoverdate,publicNoticeInscribe from (select distinct d.readtime, a.*
+  from publicNotice     a,
+       userhasroles     b,
+       publicNoticeRole c,
+       publicNoticeUser d
+ where c.roleid = b.roleid
+   and a.id = c.noticeid
+   and b.userid = #userId#
+   and d.noticeid(+) = a.id
+   and d.userid(+) = #userId#
+union
+select distinct d.readtime, a.*
+  from publicNotice              a,
+       users                     b,
+       publicNoticeOrganizations c,
+       publicNoticeUser          d
+ where c.orgid = to_char(b.organizationid)
+   and a.id = c.noticeid
+   and b.id = #userId#
+   and d.noticeid(+) = a.id
+   and d.userid(+) = #userId#
+union
+select distinct pnu.readtime, pn.*
+  from publicNotice              pn,
+       users                     u,
+       publicNoticeOrganizations pno,
+       publicNoticeUser          pnu,
+       organizations             org
+ where pno.orgid = to_char(org.parentid) || '_' || to_char(org.orglevel)
+   and pn.id = pno.noticeid
+   and u.id = #userId#
+   and u.organizationid=org.id
+   and pnu.noticeid(+) = pn.id
+   and pnu.userid(+) = #userId#) WHERE TRUNC(NVL(OVERDUEDATE, SYSDATE)) >= TRUNC(SYSDATE)
+		<dynamic>
+			<isPropertyAvailable property="startDate">
+				<isNotEmpty property="startDate" prepend="and">
+				<![CDATA[editorDate >= #startDate#]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="endDate" prepend="and">
+				<isNotEmpty property="endDate">
+				<![CDATA[editorDate <= trunc(#endDate#+1)]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="editorTitle" prepend="and">
+				<isNotEmpty property="editorTitle">
+       publicNoticeTitle like '%$editorTitle$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="noticeEditor" prepend="and">
+				<isNotEmpty property="noticeEditor">
+       noticeEditor like #noticeEditor# ||'%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+		<dynamic prepend=" ORDER BY ">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<sql id="sql_workBench">
+ 	select readtime,id,orgId,orgInternalCode,publicNoticeTitle,userId,noticeEditor,editorDate,
+     publicNoticeMatter,overdueDate,createUser,createDate,updateUser,updateDate,isAttachment,
+    CASE
+          WHEN overduedate is null
+             THEN '不限'
+          WHEN overduedate >= sysdate
+             THEN '否'
+          ELSE '是'
+       END isoverdate,publicNoticeInscribe from (select distinct d.readtime, a.*
+  from publicNotice     a,
+       userhasroles     b,
+       publicNoticeRole c,
+       publicNoticeUser d
+ where c.roleid = b.roleid
+   and a.id = c.noticeid
+   and b.userid = #userId#
+   and d.noticeid(+) = a.id
+   and d.userid(+) = #userId#
+union
+select distinct d.readtime, a.*
+  from publicNotice              a,
+       users                     b,
+       publicNoticeOrganizations c,
+       publicNoticeUser          d
+ where c.orgid = to_char(b.organizationid)
+   and a.id = c.noticeid
+   and b.id = #userId#
+   and d.noticeid(+) = a.id
+   and d.userid(+) = #userId#
+union
+select distinct pnu.readtime, pn.*
+  from publicNotice              pn,
+       users                     u,
+       publicNoticeOrganizations pno,
+       publicNoticeUser          pnu,
+       organizations             org
+ where pno.orgid = to_char(org.parentid) || '_' || to_char(org.orglevel)
+   and pn.id = pno.noticeid
+   and u.id = #userId#
+   and u.organizationid=org.id
+   and pnu.noticeid(+) = pn.id
+   and pnu.userid(+) = #userId#) WHERE TRUNC(NVL(OVERDUEDATE, SYSDATE)) >= TRUNC(SYSDATE)
+	</sql>
+	
+	<select id="queryPublicNoticeReceiveForList" parameterClass="java.util.Map" resultMap="publicNoticeReceiveResultList">
+		<include refid="sql_queryPublicNoticeReceiveForList"/>
+	</select>
+
+	<select id="queryPublicNoticeReceiveForListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(*) from ( <include refid="sql_queryPublicNoticeReceiveForList"/>)
+	</select>
+
+
+
+	<update id="updatePublicNotice" parameterClass="PublicNotice">
+  update publicNotice set
+    orgId=#organization.id#,
+	orgInternalCode=#orgInternalCode#,
+	userId=#userId#,
+	publicNoticeTitle=#publicNoticeTitle#,
+	noticeEditor=#noticeEditor#,
+	editorDate=#editorDate#,
+	publicNoticeMatter=#publicNoticeMatter#,
+	overdueDate=#overdueDate#,
+	isAttachment=#isAttachment#,
+	publicNoticeInscribe=#publicNoticeInscribe#
+	where id=#id#
+	</update>
+
+	<select id="getPublicNoticeAttachFileByPublicNoticeId" parameterClass="int" resultMap="PublicNoticeAttachFilesResult">
+	<![CDATA[select * from PublicNoticeAttachFiles where noticeId=#value# ]]>
+	</select>
+
+	<delete id="deletePublicNotice" parameterClass="java.lang.Long">
+ delete from publicNotice where id=#value#
+	</delete>
+
+<delete id="deletePublicNoticeByIds" parameterClass="java.util.Map">
+ delete from publicNotice where id 
+ 				<iterate close=")" open="(" prepend=" in " conjunction="," property="idList">
+					#idList[]#
+				</iterate>
+</delete>
+
+	<sql id="inquire_where">
+ from publicNotice where orgInternalCode like '$orgInternalCode$%'
+		<dynamic>
+			<isPropertyAvailable property="editorTitle">
+				<isNotEmpty property="editorTitle" prepend="and">
+     publicNoticeTitle like '%$editorTitle$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="noticeEditor">
+				<isNotEmpty property="noticeEditor" prepend="and">
+     noticeEditor like '%$noticeEditor$%'
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="editstartDate">
+				<isNotEmpty property="editstartDate" prepend="and">
+				<![CDATA[editorDate >= #editstartDate#]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="editEndDate">
+				<isNotEmpty property="editEndDate" prepend="and">
+				<![CDATA[editorDate <= trunc(#editEndDate#+1)]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="validoverdueStartDate">
+				<isNotEmpty property="validoverdueStartDate" prepend="and">
+				<![CDATA[overdueDate >= #validoverdueStartDate#]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="validoverdueEndDate">
+				<isNotEmpty property="validoverdueEndDate" prepend="and">
+				<![CDATA[overdueDate <= trunc(#validoverdueEndDate#+1)]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isInValidity">
+				<isNotEmpty property="isInValidity" prepend="and">
+					<isEqual property="isInValidity" compareValue="0"><!-- 如果在有效期内 -->
+					(overdueDate is null or overdueDate<![CDATA[>]]>sysdate )
+					</isEqual>
+					<isEqual property="isInValidity" compareValue="1">
+					overdueDate <![CDATA[<=]]>sysdate
+					</isEqual>
+				</isNotEmpty>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="isHaveValidity">
+				<isNotEmpty prepend="and" property="isHaveValidity">
+					<isEqual property="isHaveValidity" compareValue="0"><!-- 0是无,代表有效期是不限 -->
+       overdueDate is null
+					</isEqual>
+					<isEqual property="isHaveValidity" compareValue="1">
+      overdueDate is not null
+					</isEqual>
+				</isNotEmpty>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+
+
+
+
+	<select id="findInquirePublicNotice" parameterClass="java.util.Map" resultMap="publicNoticeResultList">
+ select id,orgId,orgInternalCode,publicNoticeTitle,userId,noticeEditor,editorDate,
+     publicNoticeMatter,overdueDate,createUser,createDate,updateUser,updateDate,isAttachment,
+    CASE
+          WHEN overduedate is null
+             THEN '不限'
+          WHEN overduedate >= sysdate
+             THEN '否'
+          ELSE '是'
+       END isoverdate,publicNoticeInscribe
+		<include refid="inquire_where"/>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countInquirePublicNotice" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count"/>
+		<include refid="inquire_where"/>
+	</select>
+
+	<select id="getNoticeForHistoryByOrgCode" parameterClass="java.util.Map" resultMap="publicNoticeResultList">
+    select id,orgId,orgInternalCode,publicNoticeTitle,userId,noticeEditor,editorDate,
+     publicNoticeMatter,overdueDate,createUser,createDate,updateUser,updateDate,isAttachment,
+    CASE
+          WHEN overduedate is null
+             THEN '不限'
+          WHEN overduedate >= sysdate
+             THEN '否'
+          ELSE '是'
+       END isoverdate,publicNoticeInscribe
+
+   from publicNotice where #orgInternalCode# like orginternalcode||'%' and (overdueDate is null or  ROUND(TO_NUMBER(overdueDate - SYSDATE))>0)
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+
+	<select id="countNoticeForHistoryByOrgCode" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+    select count(*) from publicNotice where #orgInternalCode# like orginternalcode||'%' and (overdueDate is null or  ROUND(TO_NUMBER(overdueDate - SYSDATE))>0)
+	</select>
+	<insert id="savePublicNoticeOrg" parameterClass="java.util.HashMap">
+ 	INSERT INTO PUBLICNOTICEORGANIZATIONS(NOTICEID, ORGID) VALUES (#noticeId#, #orgId#)
+	</insert>
+	<insert id="savePublicNoticeRole" parameterClass="java.util.HashMap">
+ 	INSERT INTO PUBLICNOTICEROLE(NOTICEID, ROLEID) VALUES (#noticeId#, #roleId#)
+	</insert>
+	<insert id="insertPublicNoticeIsRead" parameterClass="java.util.HashMap">
+ 	INSERT INTO PUBLICNOTICEUSER(NOTICEID, USERID) VALUES (#noticeId#, #userId#)
+	</insert>
+	<select id="checkIsRead" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+ 	SELECT COUNT(*) FROM PUBLICNOTICEUSER WHERE NOTICEID = #noticeId# AND USERID = #userId#
+	</select>
+	<update id="updatePublicNoticeIsRead" parameterClass="java.util.HashMap">
+ 	UPDATE PUBLICNOTICEUSER SET READTIME = SYSDATE WHERE NOTICEID = #noticeId# AND USERID = #userId#
+	</update>
+	<delete id="delPublicNoticeOrg" parameterClass="java.lang.Long">
+ 	DELETE FROM PUBLICNOTICEORGANIZATIONS WHERE NOTICEID = #id#
+	</delete>
+ <delete id="delPublicNoticeOrgByIds" parameterClass="java.util.Map">
+ 	DELETE FROM PUBLICNOTICEORGANIZATIONS WHERE NOTICEID
+ 				<iterate close=")" open="(" prepend=" in " conjunction="," property="idList">
+					#idList[]#
+				</iterate>
+ </delete>
+	<delete id="delPublicNoticeRole" parameterClass="java.lang.Long">
+ 	DELETE FROM PUBLICNOTICEROLE WHERE NOTICEID = #id#
+	</delete>
+ <delete id="delPublicNoticeRoleByIds" parameterClass="java.util.Map">
+ 	DELETE FROM PUBLICNOTICEROLE WHERE NOTICEID 
+ 				<iterate close=")" open="(" prepend=" in " conjunction="," property="idList">
+					#idList[]#
+				</iterate>
+ </delete>
+	<delete id="delPublicNoticeUser" parameterClass="java.lang.Long">
+ 	DELETE FROM PUBLICNOTICEUSER WHERE NOTICEID = #id#
+	</delete>
+ <delete id="delPublicNoticeUserByIds" parameterClass="java.util.Map">
+ 	DELETE FROM PUBLICNOTICEUSER WHERE NOTICEID 
+ 				<iterate close=")" open="(" prepend=" in " conjunction="," property="idList">
+					#idList[]#
+				</iterate>
+ </delete>
+	<select id="queryPublicNoticeOrgById" parameterClass="java.lang.Long" resultClass="java.lang.String">
+ 	SELECT ORGID FROM PUBLICNOTICEORGANIZATIONS WHERE NOTICEID = #id#
+	</select>
+	<select id="queryPublicNoticeRoleById" parameterClass="java.lang.Long" resultClass="java.lang.Long">
+ 	SELECT ROLEID FROM PUBLICNOTICEROLE WHERE NOTICEID = #id#</select>
+ 	
+	<!-- 获取当前用户最新的通知通告-->
+	<select id="getPublicNoticeLatest" parameterClass="java.lang.Long" resultMap="publicNoticeResultList">
+		select * from (  <include refid="sql_workBench"/> order by editorDate desc) where rownum=1 
+	</select>
+	
+	<!-- 获取当前用户最新的几条未读通知通告-->
+	<select id="queryPublicNoticeUnReadForList" parameterClass="java.util.Map" resultMap="publicNoticeResultList">
+		select * from (  <include refid="sql_workBench"/> 
+		<dynamic>
+			<isPropertyAvailable property="latestPublicNoticeId">
+				<isNotEmpty property="latestPublicNoticeId" prepend="and">
+				<![CDATA[id != #latestPublicNoticeId#]]>
+				</isNotEmpty>
+			</isPropertyAvailable>
+		and readtime is null 
+		</dynamic>
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$</isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+		<![CDATA[ ) where rownum <= #num# ]]>
+	</select>
+
+</sqlMap>
+

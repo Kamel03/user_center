@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="userAutocomplete">
+	<typeAlias alias="User" type="com.tianque.domain.User" />
+	<typeAlias alias="Role" type="com.tianque.domain.Role" />
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization" />
+
+	<parameterMap id="userParams" class="User">
+		<parameter property="id" />
+		<parameter property="name" />
+	</parameterMap>
+
+	<resultMap id="userResult" class="User">
+	<result property="id" column="id" />
+	<result property="name" column="name" />
+	</resultMap>
+	
+	<select id="findSuperiorVisitNameAndPinyinAndSuperior" parameterClass="java.util.Map" resultMap="userResult">
+		select distinct u.name,u.id from users u,organizations org  where (u.name like '$name$%' or u.fullPinyin like '$name$%' or u.simplePinyin like '$name$%' ) and org.orglevel<![CDATA[>=]]>#orglevel#
+	</select>
+	
+	<select id="findSuperiorVisitNameAndPinyinAndsubordinate" parameterClass="java.util.Map" resultMap="userResult">
+		select distinct u.name,u.id from users u,organizations org  where (name like '$name$%' or u.fullPinyin like '$name$%' or u.simplePinyin like '$name$%' ) and org.orglevel<![CDATA[>=]]>#orglevel#
+	</select>
+	<select id="findSuperiorVisitNameAndPinyinAndAll" parameterClass="java.util.Map" resultMap="userResult">
+		select distinct u.name,u.id from users u,organizations org  where (name like '$name$%' or u.fullPinyin like '$name$%' or u.simplePinyin like '$name$%' ) 
+	</select>
+	
+</sqlMap>

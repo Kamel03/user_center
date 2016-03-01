@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="publicNoticeAttachFiles">
+  <typeAlias alias="PublicNoticeAttachFiles" type="com.tianque.publicNotice.domain.PublicNoticeAttachFiles"/>
+  <resultMap class="PublicNoticeAttachFiles" id="PublicNoticeAttachFilesResult">
+    <result  property="id" column="id"/>
+    <result property="noticeId" column="noticeId" />
+    <result property="fileName" column="fileName" />
+    <result property="fileActualUrl" column="fileActualUrl" />
+    <result property="createUser" column="createUser"  />
+	<result property="createDate" column="createDate"  />
+	<result property="updateDate" column="updateDate"  />
+	<result property="updateUser" column="updateUser"  />
+  </resultMap>
+
+  <insert id="addPublicNoticeAttachFile" parameterClass="PublicNoticeAttachFiles">
+    <selectKey resultClass="java.lang.Long" keyProperty="id">
+     <![CDATA[SELECT s_publicNoticeAttachFiles.NEXTVAL AS ID FROM DUAL]]>
+    </selectKey>
+     INSERT INTO PublicNoticeAttachFiles
+     (id,noticeId,fileName,fileActualUrl,createUser,createDate,updateDate,updateUser) 
+     VALUES(#id#,#noticeId#,#fileName#,#fileActualUrl#,#createUser#,#createDate#,#updateDate#,#updateUser#)
+   
+  </insert>
+
+  
+  
+  <select id="getNoticeFilesByNoticeId" parameterClass="java.lang.Long" resultMap="PublicNoticeAttachFilesResult">
+    select * from PublicNoticeAttachFiles where noticeId=#value#
+  </select>
+
+  <select id="getNoticeFilesById" parameterClass="java.lang.Long" resultMap="PublicNoticeAttachFilesResult">
+    select * from PublicNoticeAttachFiles where id=#value#
+  </select>
+
+ <delete id="deleteAttachFileById" parameterClass="java.lang.Long">
+  delete from PublicNoticeAttachFiles where id=#value#
+ </delete>
+ 
+ <delete id="deleteAttachFileByPublicNoticeId" parameterClass="java.lang.Long">
+   delete from PublicNoticeAttachFiles where noticeId=#value#
+ </delete>
+ 
+ <update id="updatePublicNoticeAttachFile" parameterClass="PublicNoticeAttachFiles">
+  update PublicNoticeAttachFiles set
+    noticeId=#noticeId#,fileName=#fileName#,fileActualUrl=#fileActualUrl#
+  where id=#id#
+ </update>
+ 
+</sqlMap>

@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap 
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="workContacter">
+	<typeAlias alias="WorkContacter" type="com.tianque.domain.WorkContacter" />
+	<typeAlias alias="User" type="com.tianque.domain.User" />
+	<typeAlias alias="ContacterVo" type="com.tianque.domain.vo.ContacterVo" />
+	<typeAlias alias="MyContacter" type="com.tianque.domain.MyContacter" />
+	<parameterMap id="myContacterParams" class="MyContacter">
+		<parameter property="belongClass" />
+		<parameter property="fullPinyin" />
+		<parameter property="id" />
+		<parameter property="mobileNumber" />
+		<parameter property="name" />
+		<parameter property="owner" />
+		<parameter property="remark" />
+		<parameter property="simplePinyin" />
+	</parameterMap>
+	<resultMap id="myContacterResult" class="MyContacter">
+		<result property="belongClass" column="belongClass" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="id" column="id" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="name" column="name" />
+		<result property="owner.id" column="ownerId" />
+		<result property="remark" column="remark" />
+		<result property="simplePinyin" column="simplePinyin" />
+	</resultMap>
+	<parameterMap id="workContacterParams" class="WorkContacter">
+		<parameter property="belongClass" />
+		<parameter property="fullPinyin" />
+		<parameter property="fromUser" />
+		<parameter property="id" />
+		<parameter property="mobileNumber" />
+		<parameter property="name" />
+		<parameter property="remark" />
+		<parameter property="simplePinyin" />
+	</parameterMap>
+	<resultMap id="userOrganiztionId" class="User">
+		<result property="orgInternalCode" column="orgInternalCode" />
+	</resultMap>
+	<resultMap id="workContacterResult" class="WorkContacter">
+		<result property="belongClass" column="belongClass" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="id" column="id" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="name" column="name" />
+		<result property="remark" column="remark" />
+		<result property="userName" column="userName" />
+		<result property="simplePinyin" column="simplePinyin" />
+	</resultMap>
+	
+	<resultMap id="workContacterResults" class="WorkContacter">
+		<result property="belongClass" column="belongClass" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="id" column="id" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="name" column="name" />
+		<result property="remark" column="remark" />
+		<result property="simplePinyin" column="simplePinyin" />
+	</resultMap>
+	
+	<resultMap id="contacterVoResult" class="ContacterVo">
+		<result property="belongClass" column="belongClass" />
+		<result property="id" column="id" />
+		<result property="mobileNumber" column="mobileNumber" />
+		<result property="name" column="name" />
+		<result property="remark" column="remark" />
+	</resultMap>
+	<resultMap id="halfWorkContacterResult" extends="workContacterResults" class="WorkContacter">
+		<result property="fromUser.id" column="fromUserId"/>
+	</resultMap>
+	
+	<resultMap id="halfWorkContacterResults" extends="workContacterResult" class="WorkContacter">
+		<result property="fromUser.id" column="fromUserId"/>
+	</resultMap>
+	
+	<insert id="addWorkContacter" parameterClass="WorkContacter">
+	<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_Contacters.NEXTVAL AS ID FROM DUAL ]]>
+	</selectKey>
+	INSERT INTO Contacters(belongClass,fullPinyin,fromUserId,id,mobileNumber,name,remark,simplePinyin)
+	VALUES(#belongClass#,#fullPinyin#,#fromUser.id#,#id#,#mobileNumber#,#name#,#remark#,#simplePinyin#)
+	</insert>
+	
+	<insert id="addMyContacter" parameterClass="MyContacter">
+	<selectKey resultClass="java.lang.Long" keyProperty="id">
+		<![CDATA[SELECT S_Contacters.NEXTVAL AS ID FROM DUAL ]]>
+	</selectKey>
+	INSERT INTO Contacters(belongClass,fullPinyin,id,mobileNumber,name,ownerId,remark,simplePinyin)
+	VALUES(#belongClass#,#fullPinyin#,#id#,#mobileNumber#,#name#,#owner.id#,#remark#,#simplePinyin#)
+	</insert>
+	
+	<update id="updateWorkContacter" parameterClass="WorkContacter">
+		update Contacters set 
+		<dynamic>
+			id=#id#,remark=#remark#
+			<isNotNull prepend="," property="belongClass">
+				belongClass=#belongClass#
+			</isNotNull>
+			<isNotNull prepend="," property="fullPinyin">
+				fullPinyin=#fullPinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="fromUser">
+				fromUserId=#fromUser.id#
+			</isNotNull>
+			<isNotNull prepend="," property="mobileNumber">
+				mobileNumber=#mobileNumber#
+			</isNotNull>
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="simplePinyin">
+				simplePinyin=#simplePinyin#
+			</isNotNull>
+		 where id=#id#
+		</dynamic>
+	</update>
+	<delete id="deleteWorkContacterById" parameterClass="java.lang.Long">
+ 	 delete from Contacters where id=#value#
+	</delete>
+	<select id="getSimpleWorkContacterById" parameterClass="java.lang.Long" resultMap="halfWorkContacterResult">
+	<![CDATA[select * from Contacters	where id=#value# and belongClass='workContact']]>
+	</select>
+	<select id="getSimpleContacterById" parameterClass="java.lang.Long" resultMap="contacterVoResult">
+		<![CDATA[select * from Contacters	where id=#value#]]>
+	</select>
+	
+	<sql id="sql_where">
+		from Contacters c,users u where c.fromuserid = u.id
+		<dynamic>
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					c.id=#id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fromUserId">
+				<isNotNull property="fromUserId" prepend=" and ">
+					c.fromUserId=#fromUserId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="belongClass">
+				<isNotNull property="belongClass" prepend=" and ">
+					c.belongClass=#belongClass#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="orginternalcode">
+				<isNotNull property="orginternalcode" prepend=" and ">
+					 u.orginternalcode like '' || #orginternalcode# || '%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotNull property="name" prepend=" and ">
+					c.name like '%'||#name#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber">
+				<isNotNull property="mobileNumber" prepend=" and ">
+					c.mobileNumber like #mobileNumber#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fullPinyin">
+				<isNotNull property="fullPinyin" prepend=" and ">
+					c.fullPinyin like #fullPinyin#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="simplePinyin">
+				<isNotNull property="simplePinyin" prepend=" and ">
+					c.simplePinyin like #simplePinyin#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="notSearchChinaData">
+						<isEqual prepend="and" property="notSearchChinaData" compareValue="1">
+								u.organizationid != '1'
+						</isEqual>
+			</isPropertyAvailable>
+			
+			<isPropertyAvailable property="leavel">
+				<isNotNull property="leavel">
+					<isEqual prepend="and" property="leavel" compareValue="superior">
+						c.fromuserid in
+		 				(select distinct(u.id) from users u where 
+		 				<iterate property="leaveIds" conjunction=" or " open="(" close=")" >
+		 					u.organizationid in( $leaveIds[]$)
+						</iterate>
+		 				 )
+					</isEqual>
+					<isEqual prepend="and" property="leavel" compareValue="sameLevel">
+						c.fromuserid in
+						(select distinct(u.id) from users u where 
+						<iterate property="leaveIds" conjunction=" or " open="(" close=")" >
+					   		u.organizationid in( $leaveIds[]$ )
+						</iterate>
+						)
+					</isEqual>
+					<isEqual prepend="and" property="leavel" compareValue="jurisdiction">
+						c.fromuserid in
+						(select distinct(u.id) from users u where 
+						<iterate property="leaveIds" conjunction=" or " open="(" close=")" >
+					   		u.organizationid exists( $leaveIds[]$ )
+						</iterate>
+						)
+					</isEqual>
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findWorkContacters" parameterClass="java.util.Map" resultMap="halfWorkContacterResult">
+		<include refid="common.sql_select" />
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="findFullWorkContacters" parameterClass="java.util.Map" resultMap="halfWorkContacterResult">
+		select c.* 
+		<include refid="sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countWorkContacters" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="sql_where" />
+	</select>
+	
+	<select id="findWorkContactersByNameAndPinyin" parameterClass="java.util.Map" resultMap="halfWorkContacterResult">
+		select * from Contacters where (name like #tagName#||'%' or fullPinyin like #tagName#||'%' or simplePinyin like #tagName#||'%')
+		 and belongClass=#belongClass# 
+   		 order by id
+	</select>
+	
+	<select id="getWorkContactersByName" parameterClass="java.lang.String" resultMap="halfWorkContacterResult">
+		select * from Contacters where (name = #value#)
+	</select>
+	
+	<select id="findWorkContactersByOrganizationId" parameterClass="java.util.Map" resultMap="halfWorkContacterResults">
+		select c.*,u.userName as userName from users u ,contacters c where 
+		u.organizationid=#organizationId# and c.belongClass=#belongClass# and u.id=c.fromuserid
+	</select>
+	
+	<update id="updateMyContacter" parameterClass="MyContacter">
+		update Contacters set 
+		<dynamic>
+			id=#id#,remark=#remark#
+			<isNotNull prepend="," property="belongClass">
+				belongClass=#belongClass#
+			</isNotNull>
+			<isNotNull prepend="," property="fullPinyin">
+				fullPinyin=#fullPinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="mobileNumber">
+				mobileNumber=#mobileNumber#
+			</isNotNull>
+			<isNotNull prepend="," property="name">
+				name=#name#
+			</isNotNull>
+			<isNotNull prepend="," property="owner">
+				ownerId=#owner.id#
+			</isNotNull>
+			<isNotNull prepend="," property="simplePinyin">
+				simplePinyin=#simplePinyin#
+			</isNotNull>
+		 where id=#id#
+		</dynamic>
+	</update>
+	<delete id="deleteMyContacterById" parameterClass="java.lang.Long">
+ 	 	delete from Contacters where id=#value#
+	</delete>
+	<select id="getSimpleMyContacterById" parameterClass="java.lang.Long" resultMap="myContacterResult">
+	<![CDATA[select * from Contacters	 where id=#value# and belongClass='myContact']]>
+	</select>
+	<select id="getMyContacterByIdInMyGroup" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+	<![CDATA[select count(*) from groupHasContacts	where contacterid=#id#]]>
+	</select>	
+	<sql id="myContacter_sql_where">
+		from Contacters 
+		<dynamic prepend="WHERE">
+			<isPropertyAvailable property="id">
+				<isNotNull property="id" prepend=" and ">
+					id=#id#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="ownerId">
+				<isNotNull property="ownerId" prepend=" and ">
+					ownerId=#ownerId#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="belongClass">
+				<isNotNull property="belongClass" prepend=" and ">
+					belongClass=#belongClass#
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="name">
+				<isNotNull property="name" prepend=" and ">
+					name like '%'||#name#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="mobileNumber">
+				<isNotNull property="mobileNumber" prepend=" and ">
+					mobileNumber like #mobileNumber#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="fullPinyin">
+				<isNotNull property="fullPinyin" prepend=" and ">
+					fullPinyin like #fullPinyin#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+			<isPropertyAvailable property="simplePinyin">
+				<isNotNull property="simplePinyin" prepend=" and ">
+					simplePinyin like #simplePinyin#||'%'
+				</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<select id="findMyContacters" parameterClass="java.util.Map" resultMap="myContacterResult">
+		<include refid="common.sql_select" />
+		<include refid="myContacter_sql_where" />
+		<dynamic prepend="order by">
+			<isPropertyAvailable property="sortField">
+				<isNotNull property="sortField">$sortField$
+			  </isNotNull>
+				<isNotNull property="order">$order$</isNotNull>
+			</isPropertyAvailable>
+		</dynamic>
+	</select>
+	
+	<select id="countMyContacters" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		<include refid="common.sql_count" />
+		<include refid="myContacter_sql_where" />
+	</select>
+	
+	<select id="findMyContactersByNameAndPinyinAndOwnerId" parameterClass="java.util.Map" resultMap="myContacterResult">
+		select * from Contacters where (name like #tagName#||'%' or fullPinyin like #tagName#||'%' or simplePinyin like #tagName#||'%' ) 
+		 and belongClass=#belongClass# 
+		 and ownerId = #ownerId# order by id
+	</select>
+	
+
+</sqlMap>

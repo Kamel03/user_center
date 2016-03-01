@@ -1,0 +1,1133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="organization">
+
+	<typeAlias alias="Organization" type="com.tianque.domain.Organization" />
+	<typeAlias alias="OrganizationVo" type="com.tianque.domain.vo.OrganizationVo" />
+	<typeAlias alias="AutoCompleteData" type="com.tianque.core.vo.AutoCompleteData" />
+	<resultMap id="organizationResult" class="Organization">
+		<result property="id" column="id" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+		<result property="orgName" column="orgName" />
+		<result property="orgType.id" column="orgType" />
+		<result property="orgLevel.id" column="orgLevel" />
+		<result property="contactWay" column="contactWay" />
+		<result property="departmentNo" column="departmentNo" />
+		<result property="fullPinyin" column="fullPinyin" />
+		<result property="simplePinyin" column="simplePinyin" />
+		<result property="createUser" column="createUser" />
+		<result property="createDate" column="createDate" />
+		<result property="updateUser" column="updateUser" />
+		<result property="updateDate" column="updateDate" />
+		<result property="subCount" column="subCount" />
+		<result property="subCountFun" column="subCountFun" />
+		<result property="parentOrg.id" column="parentId" />
+		<result property="parentFunOrg.id" column="parentFunOrgId" />
+		<result property="maxCode" column="maxCode" />
+		<result property="seq" column="seq" />
+		<result property="remark" column="remark" />
+		<result property="gisInfo.buildingId" column="buildingId"/>
+		<result property="gisInfo.centerX" column="centerX"/>
+		<result property="gisInfo.centerY" column="centerY"/>
+		<result property="functionalOrgType.id" column="functionalOrgType"/>
+	</resultMap>
+	
+	<resultMap id="findOrgsByOrgCodeAndOrgTypeInternalIdResult" class="Organization">
+		<result property="id" column="id" />
+		<result property="orgLevel.id" column="orgLevel" />
+	</resultMap>
+	
+	<resultMap id="findOrgsByLevelAndOrgTypeResult" class="Organization">
+		<result property="id" column="id" />
+		<result property="departmentNo" column="departmentNo" />
+		<result property="orgInternalCode" column="orgInternalCode" />
+	</resultMap>
+	
+	<resultMap id="organizationFunctionResult" class="Organization">
+		<result property="orgType.id" column="orgType" />
+		<result property="orgLevel.id" column="orgLevel" />
+		<result property="parentOrg.id" column="parentId" />
+		<result property="functionalOrgType.id" column="functionalOrgType"/>
+	</resultMap>
+	
+	<resultMap class="java.util.HashMap" id="areaOrgStat">
+		<result property="provinceCount" column="provinceCount" javaType="java.lang.Integer"/>
+		<result property="cityCount" column="cityCount" javaType="java.lang.Integer"/>
+		<result property="districtCount" column="districtCount" javaType="java.lang.Integer"/>
+		<result property="townCount" column="townCount" javaType="java.lang.Integer"/>
+		<result property="villageCount" column="villageCount" javaType="java.lang.Integer"/>
+		<result property="gridCount" column="gridCount" javaType="java.lang.Integer"/>
+	</resultMap>
+	
+	<resultMap class="Organization" id="orgNameInfo">
+		<result property="id" column="id" />
+		<result property="parentOrg.id" column="parentId" />
+		<result property="orgName" column="orgName" />
+	</resultMap>
+
+	<resultMap id="OrganizationResultSome" class="Organization">
+        <result property="id" column="id" />
+        <result property="orgInternalCode" column="orgInternalCode" />
+	</resultMap>
+
+	<resultMap id="orgAndLevelInfo" class="Organization">
+		<result property="id" column="id" />
+		<result property="orgLevel.id" column="orgLevelId" />
+		<result property="orgLevel.displayName" column="displayname" />
+	</resultMap>
+	
+	<resultMap  id="nameAndRemarkInfo" class="Organization">
+		<result property="id" column="id" />
+		<result property="remark" column="remark" />
+		<result property="orgName" column="orgName" />
+	</resultMap>
+	
+	<!--三本台账使用-->
+	<resultMap class="AutoCompleteData" id="OrgAutoCompleteDataResult">
+		<result property="value" column="id" />
+		<result property="label" column="orgName"/>
+		<result property="desc" column="remark"  />
+	</resultMap>
+	
+	<sql id="organizationVo_sql_where">
+		<dynamic>
+			<isNotEmpty prepend="and" property="orgInternalCode">
+				o.orginternalcode like #orgInternalCode#||'%' 
+			</isNotEmpty>  
+			<isNotEmpty prepend="and" property="orgLevelId">
+				o.orglevel = #orgLevelId# 
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="orgId">
+				o.id=#orgId# 
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="parentOrgId">
+				o.parentid=#parentOrgId# 
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="isParentOrgIdNull">
+				o.parentId is not null
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="parentFunOrgId">
+				o.parentfunorgid = #parentFunOrgId#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="orgTypeId">
+				o.orgtype = #orgTypeId#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="orgName">
+				(o.orgname like #orgName#||'%' or o.simplepinyin like  #orgName#||'%' or o.fullpinyin like  #orgName#||'%')
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="equalToOrgName">
+				equalToOrgName = #equalToOrgName#
+			</isNotEmpty>
+			<isNotEmpty property="orgIdsList">
+				<isNotEmpty property="taskParameter">
+					<iterate  prepend=" and " conjunction="or" property="orgIdsList" open="(" close=")">
+						mod(o.id, #taskParameter#) in ($orgIdsList[]$)
+					</iterate>
+				</isNotEmpty>
+				<isEmpty property="taskParameter">
+					<iterate prepend=" and "  property="orgIdsList" conjunction="or" open="(" close=")">
+						o.id in ($orgIdsList[]$)
+					</iterate>
+				</isEmpty>
+			</isNotEmpty>
+			<isNotEmpty prepend="start with" property="startWithOrgId">
+				start with o.id = #startWithOrgId# connect by prior t.parentid = t.id
+			</isNotEmpty>
+			
+			<isPropertyAvailable property="leavel">
+			<isEqual  property="leavel" compareValue="superior">
+				<isNotEmpty prepend="and" property="lessOrgLevelId">
+					o.orglevel <![CDATA[>]]> #lessOrgLevelId# 
+				</isNotEmpty>
+			</isEqual>
+			<isEqual  property="leavel" compareValue="sameLevel">
+				<isNotEmpty prepend="and" property="lessOrgLevelId">
+					o.orglevel <![CDATA[=]]> #lessOrgLevelId# 
+				</isNotEmpty>
+			</isEqual>
+			<isEqual  property="leavel" compareValue="jurisdiction">
+				<isNotEmpty prepend="and" property="lessOrgLevelId">
+					o.orglevel <![CDATA[<]]> #lessOrgLevelId# 
+				</isNotEmpty>
+			</isEqual>
+			</isPropertyAvailable>
+		</dynamic>
+	</sql>
+	
+	<insert id="addOrganization" parameterClass="Organization">
+		<selectKey resultClass="java.lang.Long" keyProperty="id">
+			<![CDATA[SELECT s_organizations.NEXTVAL as id from dual ]]>
+		</selectKey>
+		INSERT INTO organizations
+		(id,parentFunOrgId,orgInternalCode,orgName,fullPinyin,simplePinyin,orgType,orgLevel,contactWay,departmentNo,createDate,parentId,createUser,subCount,subCountFun,seq,maxCode,remark,functionalOrgType)
+		VALUES(#id#,#parentFunOrg.id#,#orgInternalCode#,#orgName#,#fullPinyin#,#simplePinyin#,#orgType.id#,#orgLevel.id#,#contactWay#,#departmentNo#,#createDate#,#parentOrg.id#,#createUser#,0,0,#seq#,#maxCode#,#remark#,#functionalOrgType.id#)
+	</insert>
+	<select id="findById" parameterClass="java.lang.Long" resultMap="organizationResult">
+		select * from organizations
+		<dynamic prepend="where">
+			<isNull property="value">
+			id is null
+			</isNull>
+			<isNotNull property="value">
+			id=#value#
+			</isNotNull>
+		</dynamic>
+	</select>
+	<delete id="deleteById" parameterClass="java.lang.Long" >
+		delete from organizations where id=#value#
+	</delete>
+	<select id="findOrganizationsByOrgNameAndInternalCode" parameterClass="java.util.Map"
+		resultMap="organizationResult">
+		select o.* from organizations o
+		 where (o.orgName like #orgName#
+		 or o.simplePinyin like #orgName#
+		 or o.fullpinyin like #orgName#)
+		 and o.orgInternalCode like #orgInternalCode#
+	</select>
+	<select id="getMaxDepartmentNoByParentId" parameterClass="java.lang.Long" resultClass="string">
+		select max(departmentNo) from organizations where parentId=#value# and orgtype<![CDATA[<>]]>111
+	</select>
+	<select id="findOrganizationsByorgNameAndOrgType" parameterClass="java.util.Map"
+		resultMap="organizationResult">
+		select o.* from organizations o
+		 where (o.orgName like #orgName#
+		 or o.simplePinyin like #orgName#
+		 or o.fullpinyin like #orgName#)
+		 and o.orgInternalCode like #orgInternalCode#
+         and orgType=#orgType.id#
+	</select>
+	<select id="findOrganizationsByOrgNameAndParentId" parameterClass="java.util.Map"
+		resultMap="organizationResult">
+		select * from organizations
+		 where orgName = #orgName#
+		 <dynamic>
+			<isNull property="parentId" prepend="and">
+				parentId is null
+			</isNull>
+			<isNotNull property="parentId" prepend="and">
+				parentId = #parentId#
+			</isNotNull>
+			<isNotNull property="id" prepend="and">
+			<![CDATA[
+				id <> #id#
+			]]>
+			</isNotNull>
+		</dynamic>
+	</select>
+	<select id="findOrganizationsByOrgNoAndTypeAndLevel" parameterClass="java.util.Map"
+		resultMap="organizationResult">
+		select * from organizations
+		 where departmentNo = #departmentNo#
+		 <dynamic>
+			<isNotNull property="orgType" prepend="and">
+				orgType = #orgType#
+			</isNotNull>
+			<isNotNull property="orgLevel" prepend="and">
+				orgLevel = #orgLevel#
+			</isNotNull>
+			<isNotNull property="parentId" prepend="and">
+				parentId = #parentId#
+			</isNotNull>
+			<isNotNull property="id" prepend="and">
+			<![CDATA[
+				id!=#id#
+			]]>
+			</isNotNull>
+		</dynamic>
+	</select>
+	
+	<select id="findOrganizationsByParentIdAndType" parameterClass="java.util.Map"
+		resultClass="java.lang.Long">
+		select id from organizations where (id = #orgId# or parentId = #orgId#) and orgType = #orgType#
+	</select>
+	
+	<select id="getOrganizationsByParentAndOrgName" parameterClass="java.util.Map"
+		resultMap="organizationResult">
+		select * from organizations
+		 where orgName = #orgName#
+		 <dynamic>
+			<isNull property="parentId" prepend="and">
+				parentId is null
+			</isNull>
+			<isNotNull property="parentId" prepend="and">
+				parentId = #parentId#
+			</isNotNull>
+		</dynamic>
+	</select>
+	<select id="findOrganizationsByParentId" parameterClass="java.lang.Long" resultMap="organizationResult">
+		select * from organizations
+		<dynamic prepend="WHERE">
+			<isNull property="value">
+				parentId is null
+			</isNull>
+			<isNotNull property="value" >
+				parentId = #value#
+			</isNotNull>
+		</dynamic>
+		order by seq
+	</select>
+	
+	<select id="findOrgIdByParentId" parameterClass="java.lang.Long" resultClass="java.lang.Long">
+		select id from organizations where parentId = #value#
+	</select>
+	
+	<select id="findProvinceOrganizationsByOrgId" parameterClass="java.util.Map" resultMap="organizationResult">
+		select * from organizations where  
+			orginternalcode = (select substr(o2.orginternalcode,1,instr(o2.orginternalcode,  '.',1,#num#)) from organizations o2 
+				where o2.id = #orgId#)
+		order by seq
+	</select>
+	
+	
+	
+	<update id="updateOrgSeqAndParentId" parameterClass="java.util.Map">
+		update organizations set parentId=#parentId#,seq=#seq# where id=#id#
+	</update>
+	<update id="updateOrgInternalCode" parameterClass="java.util.Map">
+		update organizations set orgInternalCode=#orgInternalCode# where id=#id#
+	</update>
+	<update id="updateOrganizationByOrgNameAndOrgTypeAndContactWay" parameterClass="Organization">
+		update organizations set
+		<dynamic>
+			id =#id#
+			<isNotNull prepend="," property="orgName">
+				orgName=#orgName#
+			</isNotNull>
+			<isNotNull prepend="," property="fullPinyin">
+				fullPinyin=#fullPinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="simplePinyin">
+				simplePinyin=#simplePinyin#
+			</isNotNull>
+			<isNotNull prepend="," property="orgType">
+				orgType=#orgType.id#
+			</isNotNull>
+			<isNotNull prepend="," property="orgType">
+				orgLevel=#orgLevel.id#
+			</isNotNull>
+			<isNotNull prepend="," property="contactWay">
+				contactWay=#contactWay#
+			</isNotNull>
+			<isNotNull prepend="," property="departmentNo">
+				departmentNo=#departmentNo#
+			</isNotNull>
+			<isNotNull prepend="," property="remark">
+				remark=#remark#
+			</isNotNull>
+			<isNotNull prepend="," property="updateDate">
+				updateDate=#updateDate#
+			</isNotNull>
+			<isNotNull prepend="," property="updateUser">
+				updateUser=#updateUser#
+			</isNotNull>
+			<isNotNull prepend="," property="parentFunOrg">
+				parentFunOrgId=#parentFunOrg.id#
+			</isNotNull>
+			<isNotNull prepend="," property="functionalOrgType">
+				functionalOrgType=#functionalOrgType.id#
+			</isNotNull>
+			where id=#id#
+		</dynamic>
+	</update>
+	<update id="updatOrgSubCount" parameterClass="java.util.Map">
+		update organizations set subCount=#subCount# where id=#id#
+	</update>
+
+	<update id="updatOrgSubCountFun" parameterClass="java.util.Map">
+		update organizations set subCountFun=#subCountFun# where id=#id#
+	</update>
+
+	<select id="findNextOrg" parameterClass="java.util.Map"
+		resultMap="organizationResult">
+		select * from organizations where seq > (select seq from organization
+		 where id=#id# and parentId=#parentId#)
+	</select>
+	<select id="findPreviousOrg" parameterClass="java.util.Map"
+		resultMap="organizationResult">
+		<![CDATA[
+		select * from organizations where seq < (select seq from organization
+		 where id=#id# and parentId=#parentId#)
+		 ]]>
+	</select>
+	<update id="updateOrgSeq" parameterClass="java.util.Map">
+		update organizations set seq=#seq# where id=#id#
+	</update>
+	<update id="updateOrgsSeqAfterReferSeq" parameterClass="java.util.Map">
+		update organizations set seq=seq+#index# where
+			<isNotNull property="parentId">
+				parentId=#parentId#
+			</isNotNull>
+			<isNull property="parentId">
+				parentId is null
+			</isNull>
+		and seq>=#seq#
+	</update>
+	<update id="updateOrgsSeqBeforeReferSeq" parameterClass="java.util.Map">
+		<![CDATA[
+		update organizations set seq=seq+#index# where parentId=#parentId# and seq<=#seq#
+		]]>
+	</update>
+	<update id="updateOrgsSeqBetweenReferOrg" parameterClass="java.util.Map">
+		<![CDATA[
+		update organizations set seq=seq+#index# where parentId=#parentId# and seq>=#fromSeq# and seq<=#toSeq#
+		]]>
+	</update>
+	<select id="findChildrenMaxSeqByParentId" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		select max(seq) from organizations where parentId=#value#
+	</select>
+	<select id="findMultizonesByUserId" parameterClass="java.lang.Long" resultMap="organizationResult">
+		select * from organizations where id in (select organizationId from userHasMultizones where userId=#value#)
+	</select>
+	<select id="findChildrenMinSeqByParentId" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		select min(seq) from organizations where parentId=#value#
+	</select>
+	<select id="getOrgDisplayName" resultMap="orgNameInfo">
+		select * from organizations o
+		<dynamic prepend="where">
+			<iterate property="" open="o.id in (" close=")" conjunction=",">
+				#[]#
+			</iterate>
+		</dynamic>
+	</select>
+	<select id="findOrgsByParentIdAndOrgTypeIds" resultMap="organizationResult">
+		select * from organizations o where
+			<isNotNull property="orgTypeIds" close="and">
+				<iterate property="orgTypeIds" open="o.orgType in (" close=")" conjunction=",">
+					#orgTypeIds[]#
+				</iterate>
+			</isNotNull>
+			<isNull property="parentId">parentId is null</isNull>
+			<isNotNull property="parentId">
+			parentId = #parentId#
+			</isNotNull>
+			order by seq
+	</select>
+	<select id="countOrgsByOrgInternalCode" resultClass="java.lang.Integer" parameterClass="java.lang.String">
+		select count(*) from organizations where orgInternalCode like '$value$%'
+	</select>
+	<select id="findOrganizationsByOrgName" resultMap="organizationResult" parameterClass="java.lang.String">
+		select * from organizations where orgName = #parentId#
+	</select>
+	
+	<select id="getOrganizationByOrgInternalCode" resultMap="organizationResult" parameterClass="string">
+		select * from organizations where orgInternalCode = #value#
+	</select>
+
+	<select id="findFunOrgsByParentIdAndOrgTypes" resultMap="organizationResult" parameterClass="java.util.Map">
+		select * from organizations where parentFunOrgId=#parentId# and orgType in
+		<iterate property="orgTypes" open="(" close=")" conjunction=",">
+			#orgTypes[]#
+		</iterate>
+	</select>
+	<select id="findFunOrgsByParentOrgIdAndOrgTypes" resultMap="organizationResult" parameterClass="java.util.Map">
+		select * from organizations where parentId=#parentId# and orgType in
+		<iterate property="orgTypes" open="(" close=")" conjunction=",">
+			#orgTypes[]#
+		</iterate>
+	</select>
+	<select id="getMaxCodeById" parameterClass="java.lang.Long" resultClass="java.lang.Integer">
+		select maxCode from organizations where	id=#value#
+	</select>
+	<select id="findOrgsSeqAfterReferSeq" parameterClass="java.util.Map" resultMap="organizationResult">
+			select * from organizations where
+			<isNotNull property="parentId">
+				parentId=#parentId#
+			</isNotNull>
+			<isNull property="parentId">
+				parentId is null
+			</isNull>
+			and seq>=#seq#
+	</select>
+	<select id="findOrgsSeqBeforeReferSeq" parameterClass="java.util.Map" resultMap="organizationResult">
+		<![CDATA[
+		select * from  organizations where parentId=#parentId# and seq<=#seq#
+		]]>
+	</select>
+	<select id="findOrgsSeqBetweenReferOrg" parameterClass="java.util.Map" resultMap="organizationResult">
+		<![CDATA[
+		select * from organizations where parentId=#parentId# and seq>=#fromSeq# and seq<=#toSeq#
+		]]>
+	</select>
+	<select id="findOrgsByParentIdAndOrgTypeInternalId" parameterClass="java.util.Map" resultMap="organizationResult">
+		select o.* from organizations o,propertyDicts p where o.orgType=p.id and p.internalId=#orgTypeInternalId# and
+			<isNotNull property="parentId">
+				parentId=#parentId#
+			</isNotNull>
+			<isNull property="parentId">
+				parentId is null
+			</isNull>
+			<isNotNull prepend=" and " property="functionalOrgType">
+				functionalOrgType=#functionalOrgType#
+			</isNotNull>
+			order by seq
+	</select>
+
+	<select id="findOrgsByOrgCodeAndOrgTypeInternalId" parameterClass="java.util.Map" resultMap="findOrgsByOrgCodeAndOrgTypeInternalIdResult">
+		select o.id,orgLevel from organizations o,propertyDicts p where o.orgType=p.id and p.internalId=#orgTypeInternalId# and
+		   o.orglevel <![CDATA[<>]]> (select id from propertyDicts  where displayname = '片组片格')
+			<isPropertyAvailable property="orgInternalCode">
+				<isNotEmpty prepend="and" property="orgInternalCode">
+				  orgInternalCode like #orgInternalCode#||'%'
+				</isNotEmpty>
+            </isPropertyAvailable>
+			 order by seq
+	</select>
+
+
+	<select id="findOrgsByParentIdAndOrgTypeInternalIdAndNameAndPinyin" parameterClass="java.util.Map" resultMap="organizationResult">
+		select o.* from organizations o,propertyDicts p where o.orgType=p.id and p.internalId=#orgTypeInternalId# and
+			<isNotEmpty property="name">
+				(o.orgName like '$name$%' or o.fullPinyin like '$name$%' or o.simplePinyin like '$name$%' ) and
+			</isNotEmpty>
+			<isNotNull property="parentId">
+				parentId=#parentId#
+			</isNotNull>
+			<isNull property="parentId">
+				parentId is null
+			</isNull>
+			order by seq
+	</select>
+	<update id="updateMaxCodeById" parameterClass="java.lang.Long">
+	update organizations set maxCode=maxCode+1 where id = #value#
+	</update>
+	<select id="findFunOrgsByFunParentIdAndName" parameterClass="java.util.Map" resultMap="organizationResult">
+		select o.* from organizations o,propertyDicts p where o.orgType=p.id  and
+			<isNotEmpty property="name">
+				(o.orgName like '$name$%' or o.fullPinyin like '$name$%' or o.simplePinyin like '$name$%' ) and
+			</isNotEmpty>
+			<isNotNull property="parentFunOrgId">
+				parentFunOrgId=#parentFunOrgId#
+			</isNotNull>
+			<isNull property="parentFunOrgId">
+				parentFunOrgId is null
+			</isNull>
+			order by seq
+	</select>
+
+	<select id="findOrganizationsByOrgInternalCode" parameterClass="string" resultMap="organizationResult">
+		select * from organizations where orgInternalCode like #value#||'%'
+	</select>
+
+	<select id="getOrganizationByIdAndOrgInternalCode" resultMap="OrganizationResultSome">
+		select id,orgInternalCode from organizations
+	</select>
+	<select id="getOrgByDepartmentNo" parameterClass="java.lang.String" resultMap="organizationResult">
+		select * from organizations where departmentNo = #value#
+	</select>
+	<select id="getOrganizationByParentId" parameterClass="java.lang.Long" resultMap="organizationResult">
+		select * from organizations where id=#id#
+	</select>
+	<select id="getOrgInternalCodeById" parameterClass="java.lang.String" resultMap="organizationResult">
+		select * from organizations where OrgInternalCode=#value#
+	</select>
+	<select id="findOrgsByParentDeptNoAndLevelIdExcludeFunOrgId" parameterClass="java.util.Map" resultMap="organizationResult">
+		<![CDATA[
+		select * from organizations where orgLevel=#orgLevelId# and departmentNo like '$departmentNo$%' and orgType<>#funOrgId#
+		]]>
+	</select>
+	<select id="fingOrganizationforLevel" parameterClass="java.util.Map" resultMap="organizationResult">
+		<![CDATA[
+		select * from organizations where orgLevel=#orgLevelId#
+		]]>
+	</select>
+	<select id="getOrgAndLevelInfo" parameterClass="java.lang.Long"
+		resultMap="orgAndLevelInfo">
+		<![CDATA[select o.id id,p.id orgLevelId,p.displayname  displayname
+                   from organizations o,propertydicts p
+                         where o.id =#value# and p.id=o.orglevel]]>
+	</select>
+
+	<resultMap id="tableNameAndOrgIdResult" class="com.tianque.domain.vo.OrganizationVo">
+       <result property="tableName" column="table_name" />
+       <result property="orgIdStr" column="column_name" />
+	</resultMap>
+
+	<select id="getTableNameAndOrgId"
+		resultMap="tableNameAndOrgIdResult">
+		select b.table_name,b.column_name from user_constraints a inner join user_cons_columns b
+			on a.constraint_name = b.constraint_name
+			where a.r_constraint_name=(
+				select constraint_name from user_constraints
+					where constraint_type='P' and table_name = 'ORGANIZATIONS')
+	</select>
+
+	<select id="getcountDatas" parameterClass="java.util.Map"
+		resultClass="java.lang.Integer">
+		select count(*) from $tableName$ where $orgIdStr$ = #orgId#
+	</select>
+	<update id="updateOrganizationForGis"  parameterClass="Organization">
+	 	<![CDATA[
+		update organizations set
+			 buildingId=#gisInfo.buildingId#,
+			 centerX =#gisInfo.centerX#,
+			 centerY = #gisInfo.centerY#,
+			 updateDate =#updateDate#,
+			 updateUser=#updateUser#
+		 where id =#id#
+		 ]]>
+	</update>
+	<update id="UnboundOrganizationForGis"  parameterClass="java.lang.Long">
+	 	<![CDATA[
+		update organizations set
+			 buildingId=null,
+			 centerX =null,
+			 centerY =null
+		 where id =#id#
+		 ]]>
+	</update>
+	<select id="findOrganizationByParentIdAndOrgType" parameterClass="java.util.Map" resultMap="organizationResult">
+		<![CDATA[
+		select * from organizations where orgType=#orgType# and parentId = #parentId#
+		]]>
+	</select>
+	<select id="countOrgsByOrgId" resultClass="java.lang.Integer" parameterClass="java.lang.String">
+		select count(*) from organizations where id = #value#
+	</select>
+	
+	
+	<!--<select id="countAreaOrgStat" parameterClass="java.util.Map" resultMap="areaOrgStat">
+		
+	select 
+	 nvl(sum(decode(orglevel,(select id from propertydicts where
+		propertydomainid=(select id from propertydomains where
+		domainname=#organization_level#) and internalid=#province#),1,0)),0) as provinceCount
+     ,nvl(sum(decode(orglevel,(select id from propertydicts where
+		propertydomainid=(select id from propertydomains where
+		domainname=#organization_level#) and internalid=#city#),1,0)),0) as cityCount
+	,nvl(sum(decode(orglevel,(select id from propertydicts where
+		propertydomainid=(select id from propertydomains where
+		domainname=#organization_level#) and internalid=#district#),1,0)),0) as districtCount
+	, nvl(sum(decode(orglevel,(select id from propertydicts where
+		propertydomainid=(select id from propertydomains where
+		domainname=#organization_level#) and internalid=#town#),1,0)),0) as townCount
+	, nvl(sum(decode(orglevel,(select id from propertydicts where
+		propertydomainid=(select id from propertydomains where
+		domainname=#organization_level#) and internalid=#village#),1,0)),0) as villageCount
+	, nvl(sum(decode(orglevel,(select id from propertydicts where
+		propertydomainid=(select id from propertydomains where
+		domainname=#organization_level#) and internalid=#grid#),1,0)),0) as gridCount
+from organizations mo
+where mo.orgtype=(select id from propertydicts where
+		propertydomainid=(select id from propertydomains where
+		domainname=#organization_type#) and internalid=0)
+    and mo.orginternalcode like #orgCode#||'%'
+	</select>-->
+	
+	
+	<select id="countAreaOrgStat" parameterClass="java.util.Map" resultMap="areaOrgStat">
+	select 
+	 nvl(sum(decode(orglevel,#provincePropertyDomainId#,1,0)),0) as provinceCount
+     ,nvl(sum(decode(orglevel,#cityPropertyDomainId#,1,0)),0) as cityCount
+	,nvl(sum(decode(orglevel,#districtPropertyDomainId#,1,0)),0) as districtCount
+	, nvl(sum(decode(orglevel,#townPropertyDomainId#,1,0)),0) as townCount
+	, nvl(sum(decode(orglevel,#villagePropertyDomainId#,1,0)),0) as villageCount
+	, nvl(sum(decode(orglevel,#gridPropertyDomainId#,1,0)),0) as gridCount
+	from organizations mo
+	where mo.orgtype=#gridPropertyDomainIdByType#
+    and mo.orginternalcode like #orgCode#||'%'
+	</select>
+	
+	
+	
+	<select id="findOrganizationByOrgCodeAndOrgLevelInternals" parameterClass="java.util.Map" resultMap="organizationResult">
+	select * from organizations where OrgInternalCode like #orgCode#||'%'
+	<isNotNull property="orgLevelInternals" prepend="and">
+	 orgLevel in 
+	 (select id from propertyDicts where propertyDomainId =
+	   (select id from propertyDomains where domainname='网格分级') and 
+	    internalId in 
+	    <iterate open="(" close=")"  conjunction=","  property="orgLevelInternals">
+	     #orgLevelInternals[]#
+	    </iterate>
+	    )
+	</isNotNull>
+	<isNotNull property="orgTypeInternals" prepend="and">
+	orgType in 
+	(select id from propertyDicts where propertyDomainId =
+	   (select id from propertyDomains where domainname='网格类型') and 
+	    internalId in 
+	    <iterate open="(" close=")"  conjunction=","  property="orgTypeInternals">
+	     #orgTypeInternals[]#
+	    </iterate>
+	    )
+	</isNotNull>
+	<isNotNull property="exceptOrgIds" prepend="and">
+	id not in 
+	<iterate open="(" close=")"  conjunction=","  property="exceptOrgIds">
+	     #exceptOrgIds[]#
+	    </iterate>
+	</isNotNull>
+	</select>
+	<select id="findOrgsByInternalIdsAndOrgCode" parameterClass="java.util.Map" resultMap="organizationResult">
+	   select * from organizations where OrgInternalCode like #orgCode#||'%'
+	   <isNotNull property="orgLevelInternalId" prepend="and">
+	 orgLevel = 
+	 (select id from propertyDicts where internalId = #orgLevelInternalId# )
+	</isNotNull>
+	<isNotNull property="orgTypeInternalId" prepend="and">
+	 orgType = 
+	 (select id from propertyDicts where internalId = #orgTypeInternalId# )
+	</isNotNull>
+	</select>
+	<select id="getRootOrganization"  resultMap="organizationResult">
+		<![CDATA[
+		select * from organizations where  parentId is null
+		]]>
+	</select>
+	<select id="findOrgsFetchParentOrgByKeyword"  resultMap="organizationResult">
+	select * from organizations o where o.orgName like #value#
+		 or o.simplePinyin like #value#
+		 or o.fullpinyin like #value# 
+	</select>
+	<select id="findOrgsByOrgTypeIdAndOrgLevelIdAndParentOrgInternalCode" parameterClass="java.util.Map" resultMap="organizationResult">
+	select * from organizations o where o.orgInternalCode like #parentOrgInternalCode#
+		<isNotEmpty property="orgLevelId" prepend="and">
+		 	o.orgLevel = #orgLevelId#
+		 </isNotEmpty>
+		 <isNotEmpty property="orgTypeId" prepend="and">
+		 	o.orgType = #orgTypeId# 
+		 </isNotEmpty>
+	</select>
+	
+	
+	<!--得到当前用户的直属上级或者所有下级-->
+	<select id="findOrgsByOrgTypeIdAndOrgLevelIdAndOrgInternalCode" parameterClass="java.util.Map" resultMap="organizationResult">
+	select * from organizations o where 1=1
+		<isEqual property="isUp" compareValue="0">
+				<isNotEmpty property="orgInternalCode" prepend=" and ">
+					#orgInternalCode# like o.orgInternalCode ||'%'
+				</isNotEmpty>
+		</isEqual>
+		<isEqual property="isUp" compareValue="1">
+				<isNotEmpty property="orgInternalCode" prepend=" and ">
+					o.orgInternalCode like #orgInternalCode# || '%'
+				</isNotEmpty>
+		</isEqual>
+		<isNotEmpty property="orgLevelId" prepend="and">
+		 		o.orgLevel = #orgLevelId#
+		 		</isNotEmpty>
+		 <isNotEmpty property="orgTypeId" prepend="and">
+		 	o.orgType = #orgTypeId# 
+		 </isNotEmpty>
+	</select>
+	
+	<select id="findOrgsByOrgTypeIdAndOrgLevelId" parameterClass="java.util.Map" resultMap="organizationFunctionResult">
+		select max(orgType) as orgType,max(orgLevel) as orgLevel,max(parentId) as parentId ,functionalOrgType,( select displayseq from propertydicts  where id =o.functionalorgtype) as displayseq from organizations o where o.orgInternalCode like #userOrgInternalCode#
+		<isNotEmpty property="orgLevelId" prepend="and">
+		 	o.orgLevel = #orgLevelId#
+		 </isNotEmpty>
+		 <isNotEmpty property="orgTypeId" prepend="and">
+		 	o.orgType = #orgTypeId# 
+		 </isNotEmpty>
+		 group by functionalOrgType order by displayseq
+	</select>
+	
+	
+		<select id="findFunOrgsByFunParentId" parameterClass="java.util.Map" resultMap="organizationResult">
+		select o.* from organizations o where
+		orgType = 
+	(select id from propertyDicts where propertyDomainId =
+	   (select id from propertyDomains where domainname=#domainname# ) and internalid=#internalId#)
+			
+			<isNotNull property="funParentId" prepend="and">
+				parentfunorgid=#funParentId#
+			</isNotNull>
+			<isNull property="funParentId">
+				parentfunorgid is null
+			</isNull>
+			order by seq
+	</select>
+	
+	<select id="findOrganizationsByOrgNameAndInternalCodeAndTypeForPage" parameterClass="map" resultMap="organizationResult">
+		select o.* from organizations o,propertyDicts p
+		 where (o.orgName like #orgName#||'%'
+		 or o.simplePinyin like #orgName#||'%'
+		 or o.fullpinyin like #orgName#||'%')
+		 and  o.orgType=p.id and p.internalId in
+		    <iterate open="(" close=")"  conjunction=","  property="type">
+		     #type[]#
+		    </iterate>
+		  
+	</select>
+	<select id="getOrgZN" parameterClass="java.lang.Long" resultMap="organizationResult">
+		SELECT * FROM ORGANIZATIONS WHERE PARENTID=#id# AND ORGTYPE=(SELECT ID FROM PROPERTYDICTS WHERE DISPLAYNAME='职能部门' AND 
+		PROPERTYDOMAINID = (SELECT ID FROM PROPERTYDOMAINS WHERE DOMAINNAME='网格类型'))
+	</select>
+	<select id="findOrgsByDepartmentNo" parameterClass="java.util.Map" resultMap="organizationResult">
+		select * from organizations where departmentNo like  '$departmentNo$%'
+	</select>
+	
+	<select id="hasFunOrganizationByParentOrgAndFunOrgType" parameterClass="map" resultClass="integer">
+		select count(0) from organizations where orginternalcode like '$parentOrgCode$%' and functionalOrgType=#funOrgType#
+	</select>
+	<select id="getOrganizationsByLevel" parameterClass="map" resultClass="java.lang.Long">
+		select id from organizations where orglevel=#levelId# and orgtype=#typeId#
+	</select>
+	<select id="getDepartmentNoByLevel" parameterClass="map" resultMap="findOrgsByLevelAndOrgTypeResult">
+		select id,departmentNo,orgInternalCode from organizations where orglevel=#levelId# and orgtype=#typeId#
+	</select>
+	<!-- 根据网格类型和网格级别查询 -->
+	<select id="findDistrictAdminOrgsByOrgType" parameterClass="java.util.Map" resultMap="organizationResult">
+		select * from organizations o where 1=1
+		<isNotEmpty property="orgCodeFindLevel" prepend="and">
+		 	 <![CDATA[REGEXP_LIKE(o.orginternalcode, '^' || REPLACE(#searchOrgCode#,'.','\.') || '([^\.]{1,4}\.){$orgCodeFindLevel$}$$')]]>
+		</isNotEmpty>
+		<isNotEmpty property="orgTypeId" prepend="and">
+		 	 o.orgType=#orgTypeId#
+		</isNotEmpty>
+		order by (select to_number(seq ||'00'|| o.seq) from organizations o1 where o1.id=o.parentid)
+	</select>
+	
+	<select id="findFuncOrgInfoByCondition" parameterClass="java.util.Map" resultMap="organizationResult">
+		select * from organizations o where 1=1 
+		<isEqual property="isUp" compareValue="0" >
+			<isNotEmpty property="orgLevel" prepend=" and ">
+				o.orglevel =#orgLevel#
+			</isNotEmpty>
+		</isEqual>
+		<isNotEmpty property="orgCode" prepend=" and ">
+					o.orgInternalCode like #orgCode# || '%'
+				</isNotEmpty>
+		<isNotEmpty property="orgType" prepend=" and ">
+			o.orgtype=#orgType#
+		</isNotEmpty>
+		
+		<isNotEqual property="" compareValue=""></isNotEqual>
+	</select>
+	
+	<select id="findOrganizationByOrgLevel" parameterClass="java.util.Map" resultMap="organizationResult">
+	        select *
+		      from organizations t
+		     where t.orglevel = (select p.id
+		                           from propertyDicts p
+		                          where p.propertyDomainId =
+		                                (select id
+		                                   from propertyDomains
+		                                  where domainname = #domainName#)
+		                            and p.displayname = #dictName#)
+		     start with t.id = #orgId#
+		    connect by prior t.parentid = t.id 
+	</select>
+	
+	<select id="getDepartmentnosByParentOrgId" parameterClass="map" resultClass="string">
+		select org.departmentno from organizations org 
+			<dynamic prepend="where">
+				<isNull property="orgId">
+					org.parentid is null
+				</isNull>
+				<isNotNull property="orgId">
+					org.parentid = #orgId#
+				</isNotNull>
+			</dynamic>
+	</select>
+	
+	<update id="updateOrganizationDeptNo" parameterClass="map">
+		update organizations org set org.departmentno = #deptNo# where org.id = #orgId#
+	</update>
+	
+	<update id="updateChildOrganizationDeptNo" parameterClass="map">
+		 update organizations org set org.departmentno =
+       			( #newDeptNo# ||  substr(org.departmentno, (length(#newDeptNo#)+1) ,( length(org.departmentno) - length(#newDeptNo#)+1 )))
+               where org.departmentno like '$oldDeptNo$%' and org.departmentno != #oldDeptNo#
+	</update>
+	
+	<select id="findAllOrganization" resultMap="organizationResult">
+		select * from organizations
+	</select>
+	
+	<select id="findLeafOrgIdByCode" resultClass="java.lang.Long" parameterClass="java.lang.String">
+		select id from organizations where orgInternalCode like #value#||'%' and subcount = 0
+	</select>
+	
+	<select id="findOrganizationByOrgLevelAndOrgType" parameterClass="map" resultClass="java.lang.Long">
+		select id from organizations where orglevel>#orgLevel#
+		<isNotNull property="orgType">
+			and orgType = #orgType#
+		</isNotNull>
+	</select>
+	
+	<select id="findAllOrgByParentOrgCode" resultMap="organizationResult" parameterClass="map">
+		select * from organizations where  orgInternalCode like #orgCode#||'%' and orgType = #orgType# order by seq
+	</select>
+	
+	<!-- add by yangbing orgid 取模-->
+	<resultMap class="Organization" id="organIdForLevel">
+		<result property="id" column="id" />
+	</resultMap>
+	<select id="findOrganIdForLevelExcludeGrid" parameterClass="java.util.Map" resultMap="organIdForLevel">
+		select t4.id from organizations t4 where 
+			t4.id in (
+				select t1.id from organizations t1 where t1.orglevel != #orgLevelId# 
+				and mod(t1.id,#taskItemNum#)
+				<iterate conjunction="," property="idModList" prepend=" in " open="(" close=")">#idModList[]#</iterate>
+				and exists ( select 1 from organizations t2 where t2.parentid = t1.id )
+				minus select distinct t3.parentorgid from $targetIssueTable$ t3 
+	  			where t3.year=#year# and t3.month=#month# )
+			and rownum <![CDATA[<=]]> #fetchNum#  
+	</select>
+	
+	<!-- add by yangbing -->
+	<!-- 三本台账时限考核成绩取模查询对应的orgId ()-->
+	<select id="queryOrgIdsByModelForStatisticsAccountTimeouts" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select id from (select rownum as row_num,o.id as id from organizations o where o.parentId is not null 
+			and mod(o.id, #taskParameter#) 
+		<iterate conjunction="," property="idModList" prepend=" in " open="(" close=")">
+			#idModList[]#
+		</iterate>
+			and not exists(select 1 from $tableName$ sa where o.id = sa.orgId) order by o.id)t 
+		<![CDATA[where row_num <=#pageSize#]]>
+	</select>
+	<!-- 三本台账时限考核成绩取模查询总数-->
+	<select id="countOrgIdsByModelForStatisticsAccountTimeouts" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(id) from organizations o where o.parentId is not null 
+			and mod(o.id, #taskParameter#)
+		<iterate conjunction="," property="idModList" prepend=" in " open="(" close=")">
+			#idModList[]#
+		</iterate>
+	</select>
+	<!-- 三本台账报表取模查询对应的orgId ()-->
+	<select id="queryOrgIdsByModelForAccountReport" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select id from organizations o where o.parentId is not null 
+			and mod(o.id, #taskParameter#)
+		<iterate conjunction="," property="idModList" prepend=" in " open="(" close=")">
+			#idModList[]#
+		</iterate>
+		and	o.orgtype =
+		          (select id
+		             from propertydicts pd
+		            where pd.internalid = #orgTypeInternalId#
+		              and pd.propertydomainid =
+		                  (select id from propertydomains p where p.domainname = '网格类型'))
+		        and o.orglevel=(select id
+		             from propertydicts pd
+		            where pd.internalid = #orgLevelInternalId#
+		              and pd.propertydomainid =
+		                  (select id from propertydomains p where p.domainname = '网格分级'))
+	</select>
+	
+	<select id="findAllOrganizationById" parameterClass="java.lang.Long" resultMap="organizationResult">
+		select * from allorganizations
+		<dynamic prepend="where">
+			<isNull property="value">
+			id is null
+			</isNull>
+			<isNotNull property="value">
+			id=#value#
+			</isNotNull>
+		</dynamic>
+	</select>
+	
+	<select id="getAdministrativeCityOrg" parameterClass="java.util.Map" resultMap="organizationResult">
+		select * from organizations o where o.orginternalcode like #orgCode#||'%' and o.orgtype=#orgType# and o.orglevel=#orgLevel# order by o.seq,o.orginternalcode
+	</select>
+		
+	<select id="getUserOrganztionCodeByOrgId" parameterClass="java.lang.Long" resultClass="java.lang.String">
+		select substr(o2.orginternalcode,1,instr(o2.orginternalcode,  '.',1,'2')) as orgInternalCode from organizations o2 
+        where o2.id = #orgId#
+	</select>
+	
+	<select id="getViewObjectDefNum" parameterClass="java.util.List" resultClass="java.lang.Integer">
+		select countNum from 
+		<iterate removeFirstPrepend="true" conjunction="union all"  open="(" close=")"> 
+			select count(*) countNum from organizations where orgInternalCode like #list[].orgCode#||'%' and orgtype=#list[].type# and orglevel= #list[].level#
+		</iterate>
+	</select>
+	
+	<select id="getOrgIdsWhenSelectByLevel" parameterClass="java.util.Map" resultClass="java.lang.Long">
+	 	<dynamic>
+		 	<isNotEmpty property="list">
+			   <iterate conjunction="union all" property="list">
+			   select id
+			  	from organizations o
+			 	where 
+			   o.orginternalcode like  '$list[].orgCode$%' and 
+			   o.orglevel =
+			       (select id
+			           from propertydicts
+			          where propertydomainid =
+			                (select id from propertydomains where domainname = #gridClazzification#)
+			            and internalid = $list[].level$) and
+			       o.orgtype =
+			       (select id
+			           from propertydicts
+			          where propertydomainid =
+			                (select id from propertydomains where domainname = #gridType#)
+			            and internalid = $list[].type$)
+			     </iterate> 
+		     </isNotEmpty>
+	     </dynamic>
+	</select>
+	
+	<select id="countOrgByOrgIdsListAndResidentStatusDict" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		select count(1)  from organizations org,propertydicts p 
+		where p.id=org.orgtype and p.internalid=#internalId# and p.propertydomainid=(select id from propertydomains where domainname=#domainName#) 
+			and exists (select 1  from organizations t1,propertydicts p where org.parentid = t1.id and  t1.orginternalcode = #searchVo.orgInternalCode#)
+	   	<iterate prepend="and" property="searchVo.orgIdsList" conjunction="or" open="(" close=")">
+			org.id not in  ($orgIdsList[]$)
+		</iterate>
+	</select>           
+	<select id="getOrgByOrgIdAndOrgLevelInternalId" parameterClass="java.util.Map" resultMap="organizationResult">
+		select * from organizations g left join propertyDicts t on t.id=g.orglevel where g.id in(
+			    select o.id from organizations o  start with o.id=#orgId# connect by prior o.parentid=o.id) and t.internalId=#internalId#
+	</select>           
+	
+	<select id="getSelectedOrgNamesByOrgIdsAndTypeLevel" parameterClass="java.util.Map" resultClass="java.lang.String">
+		select orgName from organizations o o where 1=1
+		<include refid="organizationVo_sql_where"/>
+	</select>
+	
+	<select id="findOrgIdsBySearchVo" parameterClass="OrganizationVo" resultClass="java.lang.Long">
+		select id from  organizations o where 1=1
+		<include refid="organizationVo_sql_where"/>
+	</select>
+	
+	<select id="findNameAndRemarkBySearchVo" parameterClass="OrganizationVo" resultMap="nameAndRemarkInfo">
+		select id,orgName,remark from  organizations o where 1=1
+		<include refid="organizationVo_sql_where"/>
+	</select>
+	
+	<select id="findOrgsBySearchVo" parameterClass="OrganizationVo" resultMap="organizationResult">
+		select * from  organizations o where 1=1
+		<include refid="organizationVo_sql_where"/>
+	</select>
+	
+	<select id="countOrgsBySearchVo" parameterClass="OrganizationVo" resultClass="java.lang.Integer">
+		select count(0) from  organizations o where 1=1
+		<include refid="organizationVo_sql_where"/>
+	</select>
+	
+	<select id="findOrganizationByOrgTypeAndOrgLevelAndOrgName" parameterClass="java.util.Map" resultMap="organizationResult">
+		select * from (select u.*, (select listagg(orgname, '->') within
+          group(
+          order by id)
+           from organizations o
+          where 
+          o.orginternalcode in
+                (substr(u.orginternalcode,
+                        0,
+                        instr(u.orginternalcode, '.', 1, 1)),
+                 substr(u.orginternalcode,
+                        0,
+                        instr(u.orginternalcode, '.', 1, 2)),
+                 substr(u.orginternalcode,
+                        0,
+                        instr(u.orginternalcode, '.', 1, 3)),
+                 substr(u.orginternalcode,
+                        0,
+                        instr(u.orginternalcode, '.', 1, 4)),
+                 substr(u.orginternalcode,
+                        0,
+                        instr(u.orginternalcode, '.', 1, 5)),
+                 substr(u.orginternalcode,
+                        0,
+                        instr(u.orginternalcode, '.', 1, 6)),
+                 substr(u.orginternalcode,
+                        0,
+                        instr(u.orginternalcode, '.', 1, 7)))) as fullOrgName
+ 
+   from organizations u where u.orgname=#orgName# and u.orglevel=#orgLevelId# and u.orgtype=#orgTypeId#)t  
+  where t.fullOrgName = #fullOrgName#
+	</select>
+	
+	
+	<select id="getOrganizationforLevelWithGridTotal" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		<![CDATA[
+		select count(*) from organizations where orgLevel=#orgLevelId#
+		]]>
+	</select>
+	
+	<!--三本台账调用方法-->
+	<!-- 按父类ID和部门编号获取 -->
+	<select id="findByDepartmentNoAndParentId" parameterClass="java.util.Map" resultMap="organizationResult">
+	<![CDATA[ select * from organizations o where 1=1 ]]>
+		<isNotNull property="departmentNo" prepend="and">
+			<![CDATA[ o.departmentno like '%' || #departmentNo# ]]>
+		</isNotNull>
+		<isNotNull property="parentId" prepend="and">
+			<![CDATA[ o.parentid = #parentId# ]]>
+		</isNotNull>
+	</select>
+	
+	
+	<select id="countFindChildOrgsByParentIdAndNameAndType" parameterClass="map" resultClass="int">
+		select count(*) from  organizations where 
+		parentid = #parentId# 
+		and (orgname like #tag#||'%' or simplepinyin like  #tag#||'%' or fullpinyin like  #tag#||'%') 
+		<dynamic>
+			<isNotEmpty prepend=" and " property="orgType">
+				orgtype = #orgType.id#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="exceptIds">
+				id not in 
+				<iterate open="(" close=")" conjunction="," property="exceptIds">
+					#exceptIds[]#
+				</iterate>
+			</isNotEmpty>
+			<isNotEmpty prepend="  " property="exceptDeptNos">
+				<iterate  property="exceptDeptNos">
+					and departmentno not like '%'||#exceptDeptNos[]#
+				</iterate>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<!-- 父类ID，类型查找除某些部门编号结尾的组织机构 -->
+	<select id="findChildOrgsByParentIdAndNameAndType" parameterClass="map" resultMap="OrgAutoCompleteDataResult">
+		select id,orgName,remark from  organizations where 
+		parentid = #parentId# 
+		and (orgname like #tag#||'%' or simplepinyin like  #tag#||'%' or fullpinyin like  #tag#||'%')
+		<dynamic>
+			<isNotEmpty prepend=" and " property="orgType">
+				orgtype = #orgType.id#
+			</isNotEmpty>
+			<isNotEmpty prepend=" and " property="exceptIds">
+				id not in 
+				<iterate open="(" close=")" conjunction="," property="exceptIds">
+					#exceptIds[]#
+				</iterate>
+			</isNotEmpty>
+			<isNotEmpty prepend="  " property="exceptDeptNos">
+				<iterate  property="exceptDeptNos">
+					and departmentno not like '%'||#exceptDeptNos[]#
+				</iterate>
+			</isNotEmpty>
+		</dynamic>
+	</select> 
+	
+	<!-- 指定机构下的 指定level机构数量 -->
+	<select id="countOrgsByLevelAndOrgCode" parameterClass="java.util.Map" resultClass="java.lang.Long">
+		select count(1) from organizations where orgInternalCode like #orgCode# || '%' and orgLevel=#orgLevel#
+	</select> 
+	
+	
+	<!--<select id="findChildFunOrgsByParentFunIdAndName" parameterClass="map" resultMap="OrgAutoCompleteDataResult">
+		select id,orgName,remark from  organizations where 
+		parentfunorgid = #parentId# 
+		and (orgname like #tag#||'%' or simplepinyin like  #tag#||'%' or fullpinyin like  #tag#||'%')
+		<dynamic>
+			<isNotEmpty prepend=" and " property="exceptIds">
+				id not in 
+				<iterate open="(" close=")" conjunction="," property="exceptIds">
+					#exceptIds[]#
+				</iterate>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="findParentFunOrgsByIdAndName" parameterClass="map" resultMap="OrgAutoCompleteDataResult">
+		select id,orgName,remark from  organizations where 
+		id = (select parentfunorgid from organizations where id= #id#) 
+		and (orgname like #tag#||'%' or simplepinyin like  #tag#||'%' or fullpinyin like  #tag#||'%')
+		<dynamic>
+			<isNotEmpty prepend=" and " property="exceptIds">
+				id not in 
+				<iterate open="(" close=")" conjunction="," property="exceptIds">
+					#exceptIds[]#
+				</iterate>
+			</isNotEmpty>
+		</dynamic>
+	</select>-->
+	<!--三本台账调用方法-->
+</sqlMap>

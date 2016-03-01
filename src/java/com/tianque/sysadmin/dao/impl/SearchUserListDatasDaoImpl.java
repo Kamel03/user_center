@@ -1,0 +1,160 @@
+package com.tianque.sysadmin.dao.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.tianque.component.dao.SessionDao;
+import com.tianque.controller.mode.ClientMode;
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.core.util.CalendarUtil;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.Session;
+import com.tianque.domain.User;
+import com.tianque.sysadmin.dao.OrganizationDao;
+import com.tianque.sysadmin.dao.SearchUserListDatasDao;
+import com.tianque.sysadmin.dao.UserDao;
+
+@Repository("searchUserListDatasDao")
+public class SearchUserListDatasDaoImpl extends AbstractBaseDao implements
+		SearchUserListDatasDao {
+
+	@Autowired
+	private OrganizationDao organizationDao;
+	@Autowired
+	private SessionDao sessionDao;
+
+	@Override
+	public PageInfo<User> findUserListDatas(String orgId, User user,
+			List<Long> roles, Integer page, Integer rows, String sidx,
+			String sord) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("userName", user.getUserName());
+		map.put("name", user.getName());
+		if (user.getSearchLockVal() == 0) {
+			map.put("isLock", user.isLock());
+		} else if (user.getSearchLockVal() == 1) {
+			map.put("isLock", 0);
+		} else {
+			map.put("isLock", 1);
+		}
+		map.put("state", user.getState());
+		if (null != user.getOrganization()) {
+			map.put("orgInternalCode",
+					organizationDao.getSimpleOrgById(
+							user.getOrganization().getId())
+							.getOrgInternalCode());
+		}
+		if (roles != null && roles.size() > 0) {
+			map.put("roleIds", roles);
+		}
+		map.put("orgId", orgId);
+		map.put("lastLoginTime", CalendarUtil.format(user.getLastLoginTime()));
+		map.put("timeforQuery", CalendarUtil.format(user.getTimeforQuery()));
+		map.put("ignoreIsShutDownOrNot", user.getIgnoreIsShutDownOrNot());
+		map.put("gpsOrNot", user.getGpsOrNot());
+		map.put("fourTeamsOrNot", user.getFourTeamsOrNot());
+		map.put("onLineState", user.getOnLineState());
+		map.put("accountType", user.getAccountType());
+		Integer countNum = (Integer) getSqlMapClientTemplate().queryForObject(
+				"uservo.countUsersByUserCondition", map);
+		List<User> list = getSqlMapClientTemplate().queryForList(
+				"uservo.searchUserListData", map, (page - 1) * rows, rows);
+		List<User> result = getFullUsers(list);
+		PageInfo<User> pageInfo = new PageInfo<User>();
+		pageInfo.setResult(result);
+		pageInfo.setTotalRowSize(countNum);
+		pageInfo.setCurrentPage(page);
+		pageInfo.setPerPageSize(rows);
+		return pageInfo;
+
+	}
+	
+	@Autowired
+	private UserDao userDao;
+	
+	private List<User> getFullUsers(List<User> users) {
+		List<User> result = new ArrayList<User>();
+		List<String> username = new ArrayList<String>();;
+		for (User user : users) {
+			if(username != null && username.contains(user.getUserName())){
+				continue;
+			}
+			Organization fullOrg = organizationDao.getOrgAndLevelInfo(user
+					.getOrganization().getId());
+			user.setOrganization(fullOrg);
+			user.setLogin(getUserLoginState(user.getUserName(), Boolean.FALSE));
+			userDao.setUserPropExtra(user);
+			result.add(user);
+			username.add(user.getUserName());
+		}
+		return result;
+	}
+
+	// 获取用户的在线情况
+	private boolean getUserLoginState(String userName, boolean isMobile) {
+		List<Session> userSessions = sessionDao.findSessionByUserName(userName);
+		boolean loginFlg = false;
+		for (Session session : userSessions) {
+			if (isMobile) {
+				if (session.isLogin()
+						&& session.getClientMode() == ClientMode.CLIENT_MODE_MOBILE) {
+					loginFlg = true;
+					break;
+				}
+			} else {
+				if (session.isLogin()) {
+					loginFlg = true;
+					break;
+				}
+			}
+		}
+		return loginFlg;
+	}
+
+	@Override
+	public PageInfo<User> findUserListDatasBylockStatus(User user,
+			List<Long> roles, Integer page, Integer rows, String sidx,
+			String sord) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("user", user);
+		map.put("userName", user.getUserName());
+		map.put("name", user.getName());
+		map.put("state", user.getState());
+		if (roles != null && roles.size() > 0) {
+			map.put("roleIds", roles);
+		}
+		map.put("ignoreIsShutDownOrNot", user.getIgnoreIsShutDownOrNot());
+		if (null != user.getOrganization()) {
+			map.put("orgInternalCode",
+					organizationDao.getSimpleOrgById(
+							user.getOrganization().getId())
+							.getOrgInternalCode());
+		}
+		map.put("lastLoginTime", CalendarUtil.format(user.getLastLoginTime()));
+		map.put("timeforQuery", CalendarUtil.format(user.getTimeforQuery()));
+		map.put("gpsOrNot", user.getGpsOrNot());
+		map.put("fourTeamsOrNot", user.getFourTeamsOrNot());
+		map.put("onLineState", user.getOnLineState());
+		map.put("accountType", user.getAccountType());
+		Integer countNum = (Integer) getSqlMapClientTemplate().queryForObject(
+				"uservo.countUsersByUserConditionBylockStatus", map);
+		List<User> list = getSqlMapClientTemplate().queryForList(
+				"uservo.searchUserListDataBylockStatus", map,
+				(page - 1) * rows, rows);
+		List<User> result = getFullUsers(list);
+		PageInfo<User> pageInfo = new PageInfo<User>();
+		pageInfo.setResult(result);
+		pageInfo.setTotalRowSize(countNum);
+		pageInfo.setCurrentPage(page);
+		pageInfo.setPerPageSize(rows);
+		return pageInfo;
+
+	}
+
+}

@@ -1,0 +1,442 @@
+/**
+ * tianque-com.tianque.core.user.dao.impl-SysMenuDaoImpl.java Created on Mar 29, 2009
+ * Copyright (c) 2010 by 杭州天阙科技有限公司
+ */
+package com.tianque.sysadmin.dao.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.tianque.core.base.AbstractBaseDao;
+import com.tianque.core.cache.constant.MemCacheConstant;
+import com.tianque.core.cache.service.CacheService;
+import com.tianque.core.util.BaseInfoTables;
+import com.tianque.core.util.ThreadVariable;
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Permission;
+import com.tianque.mobile.vo.PermissionVo;
+import com.tianque.sysadmin.dao.PermissionDao;
+
+/**
+ * Title: ***<br>
+ * 
+ * @author <a href=mailto:nifeng@hztianque.com>倪峰</a><br>
+ * @description ***<br/>
+ * @version 1.0
+ */
+@Repository("permissionDao")
+public class PermissionDaoImpl extends AbstractBaseDao implements PermissionDao {
+
+	@Autowired
+	private CacheService cacheService;
+
+	@Override
+	public PageInfo findAllPermissionsForPage(int pageNum, int pageSize) {
+		List list = getSqlMapClientTemplate().queryForList(
+				"permission.findPermissions", (pageNum - 1) * pageSize,
+				pageSize);
+		Integer countNum = (Integer) getSqlMapClientTemplate().queryForObject(
+				"permission.countPermissions");
+		PageInfo<Permission> pageInfo = new PageInfo<Permission>();
+		pageInfo.setResult(list);
+		pageInfo.setTotalRowSize(countNum);
+		pageInfo.setCurrentPage(pageNum);
+		pageInfo.setPerPageSize(pageSize);
+		return pageInfo;
+	}
+
+	@Override
+	public List<PermissionVo> findUserAllPermissionEnameAndCnameByUserId(
+			Long userId) {
+		return getSqlMapClientTemplate()
+				.queryForList(
+						"permission.findUserAllPermissionEnameAndCnameByUserId",
+						userId);
+	}
+
+	@Override
+	public List<Permission> findPermissionsByRoleId(Long roleId) {
+		return getSqlMapClientTemplate().queryForList(
+				"permission.findPermissionsByRoleId", roleId);
+	}
+
+	@Override
+	public List<Permission> findAllPermissionsByCurrentUserRoleId(Long userId,
+			Integer permissiontype) {
+		Map map = new HashMap();
+		map.put("userId", userId);
+		if (permissiontype != null) {
+			map.put("permissiontype", permissiontype);
+		}
+		return getSqlMapClientTemplate().queryForList(
+				"permission.findAllPermissionsByCurrentUserRoleId", map);
+	}
+
+	@Override
+	public List<String> findPermissionsEnameByUserId(Long userId) {
+		List<String> permissions = ThreadVariable.getPermissionEnameList();
+		if (permissions != null && permissions.size() > 1) {
+			return permissions;
+		}
+		permissions = (List<String>) cacheService.get(
+				MemCacheConstant.PERMISSION_NAMESPACE,
+				MemCacheConstant.getUserPermissionKey(
+						MemCacheConstant.USERPERMISSION_KEY, userId,
+
+						MemCacheConstant.USERPERMISSION_KEYPARAME_STRING));
+		if (permissions == null) {
+			permissions = getSqlMapClientTemplate().queryForList(
+					"permission.findPermissionsEnameByUserId", userId);
+			cacheService.set(MemCacheConstant.PERMISSION_NAMESPACE,
+					MemCacheConstant.getUserPermissionKey(
+							MemCacheConstant.USERPERMISSION_KEY, userId,
+							MemCacheConstant.USERPERMISSION_KEYPARAME_STRING),
+					permissions);
+		}
+		ThreadVariable.setPermissionEnameList(permissions);
+		return permissions;
+	}
+
+	@Override
+	public List<Permission> findAllPermissionMobile() {
+		List<Permission> permissions=getSqlMapClientTemplate().queryForList(
+				"permission.findAllPermissionMobile");
+		return permissions;
+	}
+
+	@Override
+	public Permission addPermission(Permission permission) {
+		Long id = (Long) getSqlMapClientTemplate().insert(
+				"permission.addPermission", permission);
+		return findPermissionsByIdFetchParent(id);
+	}
+
+	@Override
+	public Permission findPermissionByEname(String ename) {
+		Permission permission = (Permission) cacheService
+				.get(MemCacheConstant.PERMISSION_NAMESPACE,
+						MemCacheConstant
+								.getMenuPermissionKey(
+										MemCacheConstant.MENUPERMISSION_KEY,
+										null,
+										MemCacheConstant.MENUPERMISSION_KEYPERMISSIONIDTYPE_ENAME,
+										ename));
+		if (null == permission) {
+			permission = (Permission) getSqlMapClientTemplate().queryForObject(
+					"permission.findPermissionByEname", ename);
+			cacheService
+					.set(MemCacheConstant.PERMISSION_NAMESPACE,
+							MemCacheConstant
+									.getMenuPermissionKey(
+											MemCacheConstant.MENUPERMISSION_KEY,
+											null,
+											MemCacheConstant.MENUPERMISSION_KEYPERMISSIONIDTYPE_ENAME,
+											ename), permission);
+		}
+		return permission;
+	}
+
+	@Override
+	public List<Permission> findPermissionsByEnames(String[] enames) {
+		List<Permission> list = new ArrayList<Permission>();
+		Map map = new HashMap();
+		int num = enames.length / 500 + 1;
+		for (int i = 0; i < num; i++) {
+			String[] temp = new String[500];
+			System.arraycopy(enames, i * 500, temp, 0,
+					(500 + i * 500) < enames.length ? 500 : enames.length - i
+							* 500);
+			map.put("enames", temp);
+			list.addAll(getSqlMapClientTemplate().queryForList(
+					"permission.findPermissionsByEnames", map));
+		}
+
+		return list;
+	}
+
+	@Override
+	public Permission findPermissionsByIdFetchParent(Long permissionId) {
+		return (Permission) getSqlMapClientTemplate().queryForObject(
+				"permission.findPermissionsByIdFetchParent", permissionId);
+	}
+
+	@SuppressWarnings({ "unchecked" })
+	@Override
+	public List<Permission> getRootPermissions() {
+		return (List) getSqlMapClientTemplate().queryForList(
+				"permission.getRootPermissions");
+	}
+
+	@SuppressWarnings({ "unchecked" })
+	@Override
+	public List<Permission> getPermissionByParentId(Long parentId) {
+		List permissions = (List) cacheService
+				.get(MemCacheConstant.PERMISSION_NAMESPACE,
+						MemCacheConstant
+								.getMenuPermissionKey(
+										MemCacheConstant.MENUPERMISSION_KEY,
+										parentId,
+										MemCacheConstant.MENUPERMISSION_KEYPERMISSIONIDTYPE_PARENTID,
+										null));
+		if (permissions == null) {
+			permissions = (List) getSqlMapClientTemplate().queryForList(
+					"permission.getPermissionByParentId", parentId);
+			cacheService
+					.set(MemCacheConstant.PERMISSION_NAMESPACE,
+							MemCacheConstant
+									.getMenuPermissionKey(
+											MemCacheConstant.MENUPERMISSION_KEY,
+											parentId,
+											MemCacheConstant.MENUPERMISSION_KEYPERMISSIONIDTYPE_PARENTID,
+											null), permissions);
+		}
+		return permissions;
+	}
+
+	@SuppressWarnings({ "unchecked" })
+	@Override
+	public List<Permission> getPermissionByParentIdAnduserId(Long parentId,
+			Long userId) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("parentId", parentId);
+		map.put("userId", userId);
+		return getSqlMapClientTemplate().queryForList(
+				"permission.getPermissionByParentIdAnduserId", map);
+
+	}
+
+	@Override
+	public Permission updatePermissionName(Permission permission) {
+		getSqlMapClientTemplate().update("permission.updatePermissionName",
+				permission);
+		Permission result = findPermissionsByIdFetchParent(permission.getId());
+		cacheService.set(MemCacheConstant.PERMISSION_NAMESPACE,
+				MemCacheConstant.getMenuPermissionKey(
+						MemCacheConstant.MENUPERMISSION_KEY,
+						permission.getId(),
+						MemCacheConstant.MENUPERMISSION_KEYPERMISSIONIDTYPE_ID,
+						null), permission);
+		invalidatePermissionServiceNamespaceCached();
+		return result;
+	}
+
+	@Override
+	public boolean updatePermissionIndexId(Long id, Long indexId) {
+		try {
+			Map<String, Object> query = new HashMap<String, Object>();
+			query.put("id", id);
+			query.put("indexId", indexId);
+			getSqlMapClientTemplate().update(
+					"permission.updatePermissionIndexIdById", query);
+			invalidatePermissionServiceNamespaceCached();
+			return true;
+		} catch (Exception e) {
+			logger.info("更新permission数据时出现问题!");
+			return false;
+		}
+	}
+
+	private void invalidatePermissionServiceNamespaceCached() {
+		cacheService
+				.invalidateNamespaceCache(MemCacheConstant.PERMISSION_NAMESPACE);
+	}
+
+	@Override
+	public Permission getPermissionByParentIdAndIndexId(Long parentId,
+			Long indexId) {
+		Map<String, Object> query = new HashMap<String, Object>();
+		query.put("parentId", parentId);
+		query.put("indexId", indexId);
+		return (Permission) getSqlMapClientTemplate().queryForObject(
+				"permission.getPermissionByParentIdAndIndexId", query);
+	}
+
+	@Override
+	public Permission getPermissionByNullParentIdAndIndexId(Long indexId) {
+		Map<String, Object> query = new HashMap<String, Object>();
+		query.put("indexId", indexId);
+		return (Permission) getSqlMapClientTemplate().queryForObject(
+				"permission.getPermissionByNullParentIdAndIndexId", query);
+	}
+
+	@Override
+	public Permission getSimplePermissionById(Long id) {
+		return (Permission) getSqlMapClientTemplate().queryForObject(
+				"permission.getPermissionByPermissionId", id);
+	}
+
+	@Override
+	public List<Permission> findPermissionsByPermissionName(String name,
+			int pageNum, int pageSize) {
+		Map query = new HashMap();
+		query.put("name", name + "%");
+		return getSqlMapClientTemplate().queryForList(
+				"permission.findPermissionsByPermissionName", query,
+				(pageNum - 1) * pageSize, pageSize);
+	}
+
+	@Override
+	public List<Permission> findMenuPermissions(Long userId, String nodeId) {
+		HashMap<String, String> map = new HashMap<String, String>();
+		map.put("userId", userId + "");
+		map.put("nodeId", nodeId);
+		return getSqlMapClientTemplate().queryForList(
+				"permission.findMenuPermissionsByuserIdMap", map);
+
+	}
+
+	public Long countPermissionByParentId(Long parentId) {
+		return (Long) getSqlMapClientTemplate().queryForObject(
+				"permission.countPermissionByParentId", parentId);
+	}
+
+	@Override
+	public List<Permission> findMenuPermissions() {
+		return getSqlMapClientTemplate().queryForList(
+				"permission.findMenuPermissions");
+	}
+
+	@Override
+	public List<Permission> findMenuPermissions(String nodeId) {
+		return getSqlMapClientTemplate().queryForList(
+				"permission.findMenuPermissions2", nodeId);
+	}
+
+	@Override
+	public List<Permission> findMenuPermissions(Long userId) {
+		return getSqlMapClientTemplate().queryForList(
+				"permission.findMenuPermissionsByuserId", userId);
+
+	}
+
+	@Override
+	public long getPermissionIndexIdById(Long id) {
+		Object obj = getSqlMapClientTemplate().queryForObject(
+				"permission.getPermissionIndexIdById", id);
+		if (obj != null) {
+			return ((Long) obj).longValue();
+		}
+		return 0;
+	}
+
+	@Override
+	public Permission findPermissionByNormalUrl(String normalUrl) {
+		Permission permission = (Permission) getSqlMapClientTemplate()
+				.queryForObject("permission.getPermissionByNormalUrl",
+						normalUrl);
+		return permission;
+	}
+
+	@Override
+	public Integer getPermissionHasChildren(Long id) {
+		return (Integer) getSqlMapClientTemplate().queryForObject(
+				"permission.getPermissionHasChildren", id);
+	}
+
+	@Override
+	public List<Permission> findUserAllPermissionByUserIdAndPermissionEname(
+			Long userId, String ename) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("userId", userId);
+		map.put("ename", ename);
+		return getSqlMapClientTemplate().queryForList(
+				"permission.findUserAllPermissionByUserIdAndPermissionEname",
+				map);
+	}
+
+	@Override
+	public List<Permission> findMenuLeaderPermissions(String nodeId) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("LeaderView", BaseInfoTables.LEADER_VIEW);
+		return getSqlMapClientTemplate().queryForList(
+				"permission.findMenuLeaderPermissions", map);
+	}
+
+	@Override
+	public List<Permission> getLeaderPermissionByParentId(Long parentId) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("LeaderView", BaseInfoTables.LEADER_VIEW);
+		map.put("parentId", parentId);
+		return getSqlMapClientTemplate().queryForList(
+				"permission.findChildrenPermission", map);
+	}
+
+	@Override
+	public List<Permission> getLeaderPermissionByParentId(Long parentId,
+			Long userId) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("userId", userId);
+		map.put("parentId", parentId);
+		map.put("LeaderView", BaseInfoTables.LEADER_VIEW);
+		return getSqlMapClientTemplate().queryForList(
+				"permission.findChildrenPermissionByUserId", map);
+	}
+
+	@Override
+	public Integer getLeaderPermissionHasChildren(Long id) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("id", id);
+		map.put("LeaderView", BaseInfoTables.LEADER_VIEW);
+		return (Integer) getSqlMapClientTemplate().queryForObject(
+				"permission.getLeaderPermissionHasChildren", map);
+	}
+
+	public List<Permission> findMenuLeaderPermissionsByUserId(Long userId) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("userId", userId);
+		map.put("LeaderView", BaseInfoTables.LEADER_VIEW);
+		return getSqlMapClientTemplate().queryForList(
+				"permission.findMenuLeaderPermissionsByUserId", map);
+	}
+
+	@Override
+	public List<Permission> getPermissionByParentIdToPermissionTree(
+			Long parentId) {
+		List permissions = (List) cacheService
+				.get(MemCacheConstant.PERMISSION_NAMESPACE,
+						MemCacheConstant
+								.getMenuPermissionKey(
+										MemCacheConstant.MENUPERMISSION_KEY,
+										parentId,
+										MemCacheConstant.MENUPERMISSION_KEYPERMISSIONIDTYPE_PARENTID_TREE,
+										null));
+		if (permissions == null) {
+			permissions = (List) getSqlMapClientTemplate().queryForList(
+					"permission.getPermissionByParentIdToPermissionTree",
+					parentId);
+			cacheService
+					.set(MemCacheConstant.PERMISSION_NAMESPACE,
+							MemCacheConstant
+									.getMenuPermissionKey(
+											MemCacheConstant.MENUPERMISSION_KEY,
+											parentId,
+											MemCacheConstant.MENUPERMISSION_KEYPERMISSIONIDTYPE_PARENTID_TREE,
+											null), permissions);
+		}
+		return permissions;
+	}
+
+	/****************** 组织机构迁移合并方法 ************************/
+	@Override
+	public List<Permission> getAllChildPermissionsByParentId(Long permissionId) {
+		return getSqlMapClientTemplate().queryForList(
+				"permission.getAllChildPermissionsByParentId", permissionId);
+	}
+
+	@Override
+	public List<Permission> findUserAllPermissionByUserIdAndPermissionEnames(
+			Long userId, String[] enames) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("userId", userId);
+		map.put("enames", enames);
+		return getSqlMapClientTemplate().queryForList(
+				"permission.findUserAllPermissionByUserIdAndPermissionEnames",
+				map);
+	}
+
+}

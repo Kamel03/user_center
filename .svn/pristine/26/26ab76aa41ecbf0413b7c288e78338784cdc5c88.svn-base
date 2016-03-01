@@ -1,0 +1,250 @@
+package com.tianque.sysadmin.dao;
+
+import java.util.Date;
+import java.util.List;
+
+import com.tianque.core.vo.PageInfo;
+import com.tianque.domain.Organization;
+import com.tianque.domain.User;
+import com.tianque.domain.vo.UserCountAboutVo;
+import com.tianque.domain.vo.UserCountVo;
+import com.tianque.domain.vo.UserVo;
+
+public interface UserDao {
+	/**
+	 * 创建用户
+	 * 
+	 * @param sysRole
+	 */
+	public User addUser(User user);
+
+	/**
+	 * 删除用户
+	 * 
+	 * @param sysRole
+	 */
+	public void deleteUserById(Long id);
+
+	/**
+	 * 分页查询用户
+	 * 
+	 * @param sysRole
+	 */
+	public PageInfo<User> findUsersForPageByOrgInternalCodeAndLockState(
+			String OrgInternalCode, Boolean locked, User user, String roleIds,
+			int pageNum, int pageSize, String sortField, String order);
+
+	/**
+	 * 更新用户
+	 * 
+	 * @param baseUser
+	 */
+	public User updateUser(User user);
+
+	/**
+	 * 根据用户名查询用户
+	 * 
+	 * @param userName
+	 * @return
+	 */
+	public User findUserByUserName(String userName);
+
+	public List<User> findChildUsersByEnameAndOrgCode(String ename,
+			String orgcode);
+
+	public List<User> findChildUsersByEnameAndInternalCode(String ename,
+			String internalCode);
+
+	public List<User> findChildUsersByEnameAndParentOrgId(String ename,
+			long orgid);
+
+	public User getSimpleUserById(Long id);
+
+	public User getFullUserById(Long id);
+
+	public User getFullUserByUserName(String userName);
+
+	public void deleteUserRoleRelasByUserId(Long userId);
+
+	public Long addUserRoleRela(Long userId, Long roleId);
+
+	public void deleteUserMultiZoneByUserId(Long userId);
+
+	public Long addUserMultiZone(Long userId, Long orgId);
+
+	public void updateIsLockById(Long userId, boolean isLock);
+
+	public void updateUserPassword(Long id, String currentPassword, String email);
+
+	public int getUsedRoleCount(Long id);
+
+	public void resetUserPasswordByUserId(Long userId, String md5Encrypt);
+
+	// modify by FCY at 2011.12.26 start
+	public void resetUserPasswordByUserName(String userName, String password);
+
+	// modify by FCY at 2011.12.26 end
+
+	public List<User> findUserForAutocompleteByLikeOrgInternalCode(
+			String rootOrgInternalCode, String text, Boolean locked, int size);
+
+	public void deleteMultizoneByUserId(Long userId);
+
+	public void addMultizoneByUserIdAndZoneId(Long userId, Long zoneId);
+
+	public void deleteMultizoneByUserIdAndZoneIds(Long userId,
+			List<Long> deleteZoneIds);
+
+	public void deleteRoleByUserIdAndRoleIds(Long userId,
+			List<Long> deleteRoleIds);
+
+	public void addRoleByUserIdAndRoleId(Long userId, Long roleId);
+
+	public PageInfo<User> findUsersForPageByOrgIdAndLockState(Long orgId,
+			Boolean locked, String roleIds, int pageNum, int pageSize,
+			String sortField, String order, User user);
+
+	public List<User> findUserForAutocompleteByParentOrgId(Long parentOrgId,
+			String text, Boolean locked, int size);
+
+	public int countUsersByOrgInternalCode(String orgInternalCode);
+
+	public void updateFailureTimesById(Long userId, Integer failureTimes);
+
+	/**
+	 * 根据用户id获取用户所处组织机构层级
+	 */
+	public Long getUserOrgLevelByUserId(Long userId);
+
+	public void updateUserDetails(User user);
+
+	public List<User> findUsersByOrgId(Long id);
+
+	public PageInfo<User> findUsers(User user, Integer page, Integer rows,
+			String sidx, String sord);
+
+	public PageInfo<User> findUsersBylockStatus(User user, Integer page,
+			Integer rows, String sidx, String sord);
+
+	public void updateIsFristWorkBenchById(Long id, Boolean isFristWorkBench);
+
+	/**
+	 * 根据roleId查找userId
+	 * 
+	 * @param roleId
+	 * @return
+	 */
+	public List<Long> findUserIdsByRoleId(Long roleId);
+
+	public List<Long> findUserIdsByOrgIds(List<Long> orgIdList);
+
+	public List<Long> findUserIdsByRoleIds(List<Long> roleIdList);
+
+	public List<User> findUsersByRoleIds(List<Long> roleIdList);
+	
+	public List<Long> findUserIdsByByOrgTypeAndOrgLevelAndOrgParentId(
+			Long orgTypeId, Long orgLevelId, String parentOrgInternalCode);
+
+	public List<Long> findUserIdsByOrgCodeAndRoleId(String orgCode, Long roleId);
+
+	/**
+	 * 根据部门internalCode和角色Id分页查询用户
+	 */
+	public PageInfo<User> findUsersForPageInfoListByOrgInternalCodeAndRoleId(
+			String orgInternalCode, Long roleId, Integer page, Integer rows,
+			String sidx, String sord);
+
+	/**
+	 * @param user
+	 *            根据user查找(列表显示，查询等)
+	 * */
+	public PageInfo<User> findMobileUsers(UserVo userVo, int pageNum,
+			int pageSize, String sortField, String sord);
+
+	/**
+	 * @param id
+	 * @param organization
+	 *            手机账号用户匹配网格或者回收账号
+	 * */
+	public void matchupOrganizationMobileUserByIds(Long id,
+			Organization organization, int status);
+
+	public int countMobileUsers(UserVo userVo, int pageNum, int pageSize,
+			String sortField, String sord);
+
+	/**
+	 * 根据imsi码查询用户
+	 * 
+	 * @param imsi
+	 * @return
+	 */
+	public User findUserByImsi(String imsi);
+
+	/**
+	 * 
+	 * @param organization
+	 *            根据org统计所以的四级平台账号
+	 */
+	public int countFourthAccountUserByOrg(Organization organization);
+
+	/***
+	 * 开启或关闭 GPS
+	 * 
+	 * @param id
+	 * @param openOrClose
+	 */
+	public void updateOpenOrCloseGpsById(Long id, boolean openOrClose);
+
+	/***
+	 * 开启或关闭 四支队伍
+	 * 
+	 * @param id
+	 * @param openOrClose
+	 */
+	public void updateOpenOrCloseFourTeamsById(Long id, boolean openOrClose);
+
+	/**
+	 * 账号统计
+	 * 
+	 * @param orgLevel
+	 * @param orgCode
+	 * @param accountType
+	 * @param page
+	 * @param rows
+	 * @param sidx
+	 * @param sord
+	 * @return
+	 */
+	public PageInfo<UserCountVo> findUserCount(Long orgId, Long orgLevel,
+			String orgCode, Long accountType, Integer page, Integer rows,
+			String sidx, String sord);
+
+	public void setUserPropExtra(User user);
+	/**
+	 * 根据org获取该层级所以的正在使用的用户数量
+	 * @param organization
+	 * @return
+	 */
+	public int countAllLoginCount(Long orgId);
+	
+	/**
+	 * 账号统计（按组织机构、最后登录时间、新建时间、账号类型统计）
+	 * @param orgInternalCode
+	 * @param loginBeginDate
+	 * @param loginEndDate
+	 * @param createBeginDate
+	 * @param createEndDate
+	 * @param pageNum
+	 * @param pageSize
+	 * @param sortField
+	 * @param order
+	 * @param pcOrMobile
+	 * @param isSelectLoginTime
+	 * @return
+	 */
+	public PageInfo<UserCountAboutVo> findUsersAboutUserCount(
+			String orgInternalCode, Date loginBeginDate, Date loginEndDate, Date createBeginDate, Date createEndDate,
+			int pageNum, int pageSize, String sortField, String order, Long pcOrMobile, Long isSelectLoginTime, Date beginActivationTime, Date endActivationTime, Long isSelectActivationTime);
+
+	public User updateUserFromGridTeam(User user);
+}
